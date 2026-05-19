@@ -19,9 +19,17 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 #btn-fire { pointer-events:all; background:rgba(255,30,30,0.35); border:3px solid rgba(255,80,80,0.8); border-radius:50%; color:white; font-size:22px; width:80px; height:80px; display:flex; align-items:center; justify-content:center; user-select:none; -webkit-user-select:none; touch-action:none; }
 #btn-fire:active { background:rgba(255,30,30,0.7); }
 #btn-restart { pointer-events:all; background:rgba(255,200,0,0.3); border:2px solid rgba(255,200,0,0.7); border-radius:12px; color:#FFD700; font-size:14px; font-weight:bold; padding:8px 18px; display:none; user-select:none; touch-action:none; }
+
+/* ── splash screen ── */
+#splash { position:fixed; inset:0; z-index:9999; background:#000; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:none; transition:opacity 0.6s ease; }
+#splash img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
+#splash.fade-out { opacity:0; pointer-events:none; }
 </style>
 </head>
 <body>
+<div id="splash">
+  <img src="mouse_cannon_splash_screen.jpg" alt="Mouse Cannon">
+</div>
 <canvas id="canvas" width="900" height="520"></canvas>
 
 <!-- touch controls (visibili solo su touch device) -->
@@ -2349,6 +2357,30 @@ loop();
     if(!gameOver) startCharge();
   }, {passive:false});
   canvas.addEventListener('touchend', e=>{ e.preventDefault(); shoot(); }, {passive:false});
+})();
+
+// ─── SPLASH SCREEN ────────────────────────────────────────────────────────
+(function(){
+  const splash = document.getElementById('splash');
+  const img = splash.querySelector('img');
+  let imgLoaded = false, minTimePassed = false;
+
+  function hideSplash(){
+    if(!imgLoaded || !minTimePassed) return;
+    splash.classList.add('fade-out');
+    setTimeout(()=>{ splash.style.display='none'; }, 650);
+  }
+
+  img.addEventListener('load',  ()=>{ imgLoaded=true;  hideSplash(); });
+  img.addEventListener('error', ()=>{ imgLoaded=true;  hideSplash(); });
+
+  setTimeout(()=>{ minTimePassed=true; hideSplash(); }, 2000);
+
+  // abilita il tap-per-chiudere solo dopo 600ms — evita che il tocco
+  // di apertura della mini app su Telegram propaghi e chiuda subito lo splash
+  setTimeout(()=>{
+    splash.addEventListener('pointerdown', ()=>{ minTimePassed=true; hideSplash(); });
+  }, 600);
 })();
 </script>
 </body>
