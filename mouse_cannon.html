@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
@@ -36,6 +37,8 @@ body { background:#000; display:flex; align-items:center; justify-content:center
   <div style="width:64px"></div>
 </div>
 <script>
+const tg = window.Telegram.WebApp;
+tg.expand(); 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const W = 900, H = 520;
