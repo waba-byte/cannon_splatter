@@ -30,7 +30,6 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 <div id="splash">
   <img src="mouse_cannon_splash_screen.jpg" alt="Mouse Cannon">
 </div>
-<input type="text" id="nameInput" maxlength="20" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;padding:10px;font-size:16px;border:2px solid #FFD700;border-radius:8px;background:#1a1a1a;color:#fff;text-align:center;display:none;z-index:10000;">
 <canvas id="canvas" width="390" height="700"></canvas>
 
 <!-- touch controls (visibili solo su touch device) -->
@@ -49,7 +48,6 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 const tg = window.Telegram.WebApp;
 tg.expand(); 
 const canvas = document.getElementById('canvas');
-const nameInput = document.getElementById('nameInput');
 const ctx = canvas.getContext('2d');
 const W = 390, H = 700;
 const GY = 590;          // ground Y (screen/world)
@@ -89,7 +87,10 @@ const STRINGS = {
     grade_s: 'S★ SUPER TOPO', grade_a: 'A - GRAN VOLO', grade_b: 'B - DISCRETO', grade_c: 'C - NEMMENO CI PROVI', grade_d: 'D - UN DISASTRO',
     grade_label: 'GRADO:', dist_record: 'Distanza record:', leaderboard_title: '🏆 CLASSIFICA TOP 10',
     col_rank: 'RANK', col_name: 'NOME', col_dist: 'DISTANZA', col_score: 'SCORE',
-    replay_hint_kb: '[ R ] per rigiocare', replay_hint_touch: 'Tocca per rigiocare'
+    replay_hint_kb: '[ R ] per rigiocare', replay_hint_touch: 'Tocca per rigiocare',
+    death_tnt: '💥 KABOOM!!', death_spike: '🩸 INFILZATO!', death_knife: '🔪 AFFETTATO!', death_cactus: '🌵 TRAPASSATO!',
+    death_acid: '☠️ DISCIOLTO!', death_saw: '🪚 SEGATOOOO!', death_bear: '🪤 SCROCCHIATE!', death_ground: '💢 SCHIACCIATO!',
+    death_bird: '🐦 BECCATO!', death_plane: '✈️ ABBATTUTO!', death_chainsaw: '⛓️ DILANIATO!', death_lightning: '⚡ FULMINATO!', death_stop: '😵 FERMATO!'
   },
   en: {
     fire: 'HOLD', restart: 'REPLAY', best: 'BEST', kills: 'KILL', score: 'PTS',
@@ -105,7 +106,10 @@ const STRINGS = {
     grade_s: 'S★ SUPER MOUSE', grade_a: 'A - GREAT FLIGHT', grade_b: 'B - DECENT', grade_c: 'C - NOT EVEN TRYING', grade_d: 'D - A DISASTER',
     grade_label: 'GRADE:', dist_record: 'Best distance:', leaderboard_title: '🏆 TOP 10 LEADERBOARD',
     col_rank: 'RANK', col_name: 'NAME', col_dist: 'DISTANCE', col_score: 'SCORE',
-    replay_hint_kb: '[ R ] to replay', replay_hint_touch: 'Tap to replay'
+    replay_hint_kb: '[ R ] to replay', replay_hint_touch: 'Tap to replay',
+    death_tnt: '💥 BOOM!!', death_spike: '🩸 SPIKED!', death_knife: '🔪 SLICED!', death_cactus: '🌵 POKED!',
+    death_acid: '☠️ DISSOLVED!', death_saw: '🪚 SAWED!', death_bear: '🪤 TRAPPED!', death_ground: '💢 CRUSHED!',
+    death_bird: '🐦 PECKED!', death_plane: '✈️ SHOT DOWN!', death_chainsaw: '⛓️ SHREDDED!', death_lightning: '⚡ ZAPPED!', death_stop: '😵 STOPPED!'
   },
   ru: {
     fire: 'ДЕРЖИ', restart: 'ЗАНОВО', best: 'РЕКОРД', kills: 'УБИЙ', score: 'ОЧКИ',
@@ -121,7 +125,10 @@ const STRINGS = {
     grade_s: 'S★ СУПЕР МЫШЬ', grade_a: 'A - ОТЛИЧНЫЙ ПОЛЕТ', grade_b: 'B - ХОРОШО', grade_c: 'C - ПЛОХО ДАЖЕ', grade_d: 'D - КАТАСТРОФА',
     grade_label: 'УРОВЕНЬ:', dist_record: 'Лучшая дистанция:', leaderboard_title: '🏆 ТОП 10',
     col_rank: 'РАНГ', col_name: 'ИМЯ', col_dist: 'ДИСТАНЦИЯ', col_score: 'ОЧКИ',
-    replay_hint_kb: '[ R ] для переигровки', replay_hint_touch: 'Нажмите для переигровки'
+    replay_hint_kb: '[ R ] для переигровки', replay_hint_touch: 'Нажмите для переигровки',
+    death_tnt: '💥 БУМ!!', death_spike: '🩸 НАКОЛОТЫЙ!', death_knife: '🔪 НАРЕЗАННЫЙ!', death_cactus: '🌵 ПРОКОЛОТЫЙ!',
+    death_acid: '☠️ РАСТВОРЕННЫЙ!', death_saw: '🪚 РАСПИЛЕН!', death_bear: '🪤 ПОЙМАН!', death_ground: '💢 РАЗДАВЛЕН!',
+    death_bird: '🐦 КЛЮНУТ!', death_plane: '✈️ СБИТ!', death_chainsaw: '⛓️ ИЗМЕЛЬЧЕН!', death_lightning: '⚡ ПОРАЖЕН!', death_stop: '😵 ОСТАНОВЛЕН!'
   }
 };
 let lang = localStorage.getItem('lang') || 'it';
@@ -135,6 +142,7 @@ let selectedChar = localStorage.getItem('selectedChar') || 'mouse';
 let playerName = localStorage.getItem('playerName') || '';
 let playerNameScreenOpen = !playerName;  // show name screen if no name saved
 let charSelectOpen = !playerNameScreenOpen;  // only show char select after name
+let namePromptShown = false;  // track if we've already shown the prompt
 let settingsOpen = false;
 let showLeaderboard = false;
 let showShop = false;
@@ -1312,20 +1320,25 @@ const CANNON_WX_Y = GY; // cannon world y
 
 // ─── DEATHS ──────────────────────────────────────────────────────────────
 const DEATHS={
-  TNT:   {label:'💥 KABOOM!!',     color:'#FF6600',pts:250},
-  SPIKE: {label:'🩸 INFILZATO!',   color:'#CC0000',pts:175},
-  KNIFE: {label:'🔪 AFFETTATO!',   color:'#FF1744',pts:200},
-  CACTUS:{label:'🌵 TRAPASSATO!',  color:'#7CB342',pts:150},
-  ACID:  {label:'☠️ DISCIOLTO!',   color:'#76FF03',pts:225},
-  SAW:   {label:'🪚 SEGATOOOO!',   color:'#FF1744',pts:275},
-  BEAR:  {label:'🪤 SCROCCHIATE!', color:'#FF5722',pts:200},
-  GROUND:{label:'💢 SCHIACCIATO!', color:'#FF5252',pts:50},
-  BIRD:     {label:'🐦 BECCATO!',     color:'#90CAF9',pts:180},
-  PLANE:    {label:'✈️ ABBATTUTO!',   color:'#B0BEC5',pts:220},
-  CHAINSAW: {label:'⛓️ DILANIATO!',   color:'#FF1744',pts:300},
-  LIGHTNING:{label:'⚡ FULMINATO!',   color:'#FFFF00',pts:280},
-  STOP:     {label:'😵 FERMATO!',     color:'#888888',pts:0},
+  TNT:   {color:'#FF6600',pts:250},
+  SPIKE: {color:'#CC0000',pts:175},
+  KNIFE: {color:'#FF1744',pts:200},
+  CACTUS:{color:'#7CB342',pts:150},
+  ACID:  {color:'#76FF03',pts:225},
+  SAW:   {color:'#FF1744',pts:275},
+  BEAR:  {color:'#FF5722',pts:200},
+  GROUND:{color:'#FF5252',pts:50},
+  BIRD:     {color:'#90CAF9',pts:180},
+  PLANE:    {color:'#B0BEC5',pts:220},
+  CHAINSAW: {color:'#FF1744',pts:300},
+  LIGHTNING:{color:'#FFFF00',pts:280},
+  STOP:     {color:'#888888',pts:0},
 };
+
+// Get death label in current language
+function getDeathLabel(type) {
+  return t(`death_${type.toLowerCase()}`) || `${type}!`;
+}
 
 function killMouse(m, type) {
   if(!m.alive) return;
@@ -1344,7 +1357,7 @@ function killMouse(m, type) {
                   mvx:m.vx, mvy:m.vy, t:0, dur:180 };
   }
   const sx=m.wx-cam.x;
-  texts.push({wx:m.wx,wy:m.wy-45,text:d.label,color:d.color,life:1.8,vy:-1.8,size:24});
+  texts.push({wx:m.wx,wy:m.wy-45,text:getDeathLabel(type),color:d.color,life:1.8,vy:-1.8,size:24});
   texts.push({wx:m.wx,wy:m.wy-78,text:`${dist}m • +${d.pts+bonusDist}`,color:'#FFEB3B',life:1.5,vy:-1.3,size:17});
 
   switch(type){
@@ -2631,36 +2644,38 @@ function drawSettings(){
 // ─── NAME INPUT SCREEN ───────────────────────────────────────────────────
 function drawNameInputScreen(){
   if(!playerNameScreenOpen) {
+    namePromptShown = false;
     nameInput.style.display = 'none';
     return;
   }
-  // Show HTML input for mobile/Telegram
-  nameInput.style.display = 'block';
-  nameInput.value = playerName;
-  if(document.activeElement !== nameInput) nameInput.focus();
 
+  // Show prompt once to get name from user
+  if(!namePromptShown) {
+    namePromptShown = true;
+    const promptMsg = t('enter_name_q') + ' (' + t('enter_name_placeholder') + ')';
+    const result = prompt('👤 ' + t('enter_name') + '\n\n' + promptMsg);
+    if(result && result.trim()) {
+      playerName = result.trim().substring(0, 20);
+      localStorage.setItem('playerName', playerName);
+      playerNameScreenOpen = false;
+      charSelectOpen = true;
+      console.log('Player name set:', playerName);
+    } else if(result !== null) {
+      // User clicked OK but entered empty - ask again
+      namePromptShown = false;
+    }
+    // If user clicked Cancel (result === null), keep the screen open for retry
+    return;
+  }
+
+  // Draw UI while waiting for name input
   ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,0,W,H);
   ctx.fillStyle='#222'; ctx.fillRect(W/2-140,H/2-120,280,240);
   ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(W/2-140,H/2-120,280,240);
   ctx.fillStyle='#FFD700'; ctx.font='bold 20px Arial'; ctx.textAlign='center';
   ctx.fillText('👤 ' + t('enter_name'), W/2, H/2-90);
-  ctx.fillStyle='#ccc'; ctx.font='12px Arial';
-  ctx.fillText(t('enter_name_q'), W/2, H/2-70);
-
-  // input box background
-  ctx.fillStyle='#1a1a1a'; ctx.fillRect(W/2-110, H/2-40, 220, 35);
-  ctx.strokeStyle='#FFD700'; ctx.lineWidth=1; ctx.strokeRect(W/2-110, H/2-40, 220, 35);
-
-  // show current input text
-  ctx.fillStyle='#fff'; ctx.font='16px Arial'; ctx.textAlign='left';
-  const displayName = playerName || t('enter_name_placeholder');
-  ctx.fillStyle = playerName ? '#fff' : '#888';
-  ctx.fillText(displayName, W/2-100, H/2-12);
-
-  // confirm button
-  ctx.fillStyle='#3fb950'; ctx.fillRect(W/2-60, H/2+40, 120, 30);
-  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center';
-  ctx.fillText(t('confirm'), W/2, H/2+60);
+  ctx.fillStyle='#FFD700'; ctx.font='13px Arial';
+  ctx.fillText('📱 Inserisci nome quando richiesto...', W/2, H/2+80);
 }
 
 function drawCharSelect(){
@@ -2913,22 +2928,6 @@ document.addEventListener('click',e=>{
     return;
   }
 
-  // Name input screen clicks
-  if(playerNameScreenOpen) {
-    e.preventDefault();
-    e.stopPropagation();
-    // Confirm button: W/2-60, H/2+40, 120x30
-    if(canvasX > W/2-60 && canvasX < W/2+60 && canvasY > H/2+40 && canvasY < H/2+70) {
-      if(playerName.trim()) {
-        playerNameScreenOpen = false;
-        charSelectOpen = true;
-        localStorage.setItem('playerName', playerName);
-        nameInput.style.display = 'none';
-        console.log('Player name set:', playerName);
-      }
-    }
-    return;
-  }
 
   // Character select clicks
   if(!gameOver && !charSelectOpen) {
@@ -2971,24 +2970,6 @@ document.addEventListener('touchend', e=>{
     e.stopPropagation();
   }
 }, {passive:false});
-
-// ─── NAME INPUT (HTML input for mobile/Telegram support) ──────────────────
-nameInput.addEventListener('input', e => {
-  playerName = e.target.value;
-});
-
-nameInput.addEventListener('keydown', e => {
-  if(e.code === 'Enter') {
-    e.preventDefault();
-    if(playerName.trim()) {
-      playerNameScreenOpen = false;
-      charSelectOpen = true;
-      localStorage.setItem('playerName', playerName);
-      nameInput.style.display = 'none';
-      console.log('Player name set:', playerName);
-    }
-  }
-});
 
 function buyItem(itemId) {
   const items = {
