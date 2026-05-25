@@ -149,7 +149,7 @@ let selectedChar = localStorage.getItem('selectedChar') || 'mouse';
 let playerName = (window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name) || localStorage.getItem('playerName') || '';
 const isTelegramApp = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
 let playerNameScreenOpen = !playerName && !isTelegramApp;  // only show name screen on web if no name
-let charSelectOpen = playerName || isTelegramApp;  // skip to char select if name exists or on Telegram
+let charSelectOpen = !!playerName;  // show char select only after name is confirmed
 let namePromptShown = false;  // track if we've already shown the prompt
 let settingsOpen = false;
 let showLeaderboard = false;
@@ -2966,31 +2966,20 @@ document.addEventListener('click',e=>{
   }
 });
 
-// Block touch events during UI overlays
-document.addEventListener('touchstart', e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-}, {passive:false});
-document.addEventListener('touchend', e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-}, {passive:false});
+// Touch blocking is handled at canvas level, not globally, to avoid
+// interfering with UI overlays while still allowing gameplay input
 
 function buyItem(itemId) {
   const items = {
-    lives: { name: '+3 Vite', price: 25 },
-    shield: { name: 'Scudo', price: 50 },
-    supporter: { name: 'Supporter', price: 100 }
+    lives: { nameKey: 'item_lives', price: 25 },
+    shield: { nameKey: 'item_shield', price: 50 },
+    supporter: { nameKey: 'item_supporter', price: 100 }
   };
   const item = items[itemId];
   if(!item) return;
 
   // Simulated purchase (would need real Telegram invoice in production)
-  texts.push({wx:W/2, wy:H/2-100, text:`💳 ${item.name} - ${item.price}⭐`, color:'#FFD700', life:2, vy:0, size:14});
+  texts.push({wx:W/2, wy:H/2-100, text:`💳 ${t(item.nameKey)} - ${item.price}⭐`, color:'#FFD700', life:2, vy:0, size:14});
 
   if(itemId === 'lives') {
     mLeft += 3;
@@ -3363,14 +3352,14 @@ loop();
     if(isTouch) btnRst.style.display = 'none';
   };
 
-  // canvas touch → spara
+  // canvas touch → spara (but block during UI overlays)
   canvas.addEventListener('touchstart', e=>{
-    if(charSelectOpen || settingsOpen) { e.preventDefault(); e.stopPropagation(); return; }
+    if(charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
     e.preventDefault(); initAudio();
     if(!gameOver) startCharge();
   }, {passive:false});
   canvas.addEventListener('touchend', e=>{
-    if(charSelectOpen || settingsOpen) { e.preventDefault(); e.stopPropagation(); return; }
+    if(charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
     e.preventDefault(); shoot();
   }, {passive:false});
 })();
