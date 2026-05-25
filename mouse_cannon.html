@@ -2662,8 +2662,10 @@ function drawNameInputScreen(){
     } else if(result !== null) {
       // User clicked OK but entered empty - ask again
       namePromptShown = false;
+    } else {
+      // User clicked Cancel - reset to ask again next frame
+      namePromptShown = false;
     }
-    // If user clicked Cancel (result === null), keep the screen open for retry
     return;
   }
 
