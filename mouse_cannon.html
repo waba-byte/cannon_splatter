@@ -225,28 +225,79 @@ function wx(worldX) { return worldX - cam.x; } // world→screen x
 
 // ─── DRAW BACKGROUND ─────────────────────────────────────────────────────
 function drawBG() {
-  // sky
-  const sky = ctx.createLinearGradient(0,0,0,GY);
-  sky.addColorStop(0,'#03000D'); sky.addColorStop(0.6,'#0D0020'); sky.addColorStop(1,'#1A0008');
-  ctx.fillStyle=sky; ctx.fillRect(0,-3000,W,GY+3000);
+  let skyGrad, hillCol1, hillCol2;
+  let sunX = -500, sunY = 80, sunR = 45;
 
-  // stars (parallax 0.05)
-  bgStars.forEach(s=>{
-    const sx = ((s.wx - cam.x*0.05) % WORLD_W + WORLD_W) % WORLD_W;
-    if(sx>W+10) return;
-    const twinkle = 0.5+0.5*Math.sin(T*0.04+s.b*12);
-    ctx.fillStyle=`rgba(255,255,220,${(0.3+twinkle*0.7).toFixed(2)})`;
-    ctx.beginPath(); ctx.arc(sx,s.y,s.r,0,Math.PI*2); ctx.fill();
-  });
+  switch(theme) {
+    case 'day':
+      skyGrad = ctx.createLinearGradient(0,0,0,GY);
+      skyGrad.addColorStop(0,'#87CEEB'); skyGrad.addColorStop(1,'#E0F0FF');
+      ctx.fillStyle=skyGrad; ctx.fillRect(0,-3000,W,GY+3000);
+      // sun
+      ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(255,215,0,0.3)'; ctx.beginPath(); ctx.arc(sunX, sunY, sunR+20, 0, Math.PI*2); ctx.fill();
+      hillCol1='#228B22'; hillCol2='#32CD32';
+      break;
+    case 'sunset':
+      skyGrad = ctx.createLinearGradient(0,0,0,GY);
+      skyGrad.addColorStop(0,'#FF6B35'); skyGrad.addColorStop(0.5,'#F7C59F'); skyGrad.addColorStop(1,'#1A0030');
+      ctx.fillStyle=skyGrad; ctx.fillRect(0,-3000,W,GY+3000);
+      // sunset sun
+      ctx.fillStyle='#FF8C00'; ctx.beginPath(); ctx.arc(sunX, sunY+30, sunR+10, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(255,140,0,0.2)'; ctx.beginPath(); ctx.arc(sunX, sunY+30, sunR+35, 0, Math.PI*2); ctx.fill();
+      hillCol1='#8B4513'; hillCol2='#CD853F';
+      break;
+    case 'rain':
+      skyGrad = ctx.createLinearGradient(0,0,0,GY);
+      skyGrad.addColorStop(0,'#2c3e50'); skyGrad.addColorStop(1,'#34495e');
+      ctx.fillStyle=skyGrad; ctx.fillRect(0,-3000,W,GY+3000);
+      // rain drops
+      ctx.strokeStyle='rgba(200,220,255,0.6)'; ctx.lineWidth=1;
+      for(let i=0;i<80;i++) {
+        const rx = (Math.random()*W+cam.x*0.5)%W;
+        const ry = (Math.sin(T*0.05+i*0.3)*100 + i*10)%GY;
+        ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx-2, ry+8); ctx.stroke();
+      }
+      hillCol1='#1a1a2e'; hillCol2='#16213e';
+      break;
+    case 'snow':
+      skyGrad = ctx.createLinearGradient(0,0,0,GY);
+      skyGrad.addColorStop(0,'#e3f2fd'); skyGrad.addColorStop(1,'#b3e5fc');
+      ctx.fillStyle=skyGrad; ctx.fillRect(0,-3000,W,GY+3000);
+      // snowflakes
+      ctx.fillStyle='rgba(255,255,255,0.9)';
+      for(let i=0;i<60;i++) {
+        const sx = (Math.random()*W+cam.x*0.5)%W;
+        const sy = (Math.sin(T*0.02+i*0.5)*120 + i*15)%GY;
+        ctx.beginPath(); ctx.arc(sx, sy, 2+Math.sin(T*0.01+i)*1, 0, Math.PI*2); ctx.fill();
+      }
+      hillCol1='#90CAF9'; hillCol2='#BBDEFB';
+      break;
+    default: // night
+      skyGrad = ctx.createLinearGradient(0,0,0,GY);
+      skyGrad.addColorStop(0,'#03000D'); skyGrad.addColorStop(0.6,'#0D0020'); skyGrad.addColorStop(1,'#1A0008');
+      ctx.fillStyle=skyGrad; ctx.fillRect(0,-3000,W,GY+3000);
 
-  // moon (parallax 0.03)
-  const moonX = ((W - cam.x*0.03) % (WORLD_W*0.03+W) + W) % (W+400) - 100;
-  ctx.fillStyle='rgba(255,240,180,0.10)'; ctx.beginPath(); ctx.arc(moonX,52,45,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='rgba(255,240,180,0.07)'; ctx.beginPath(); ctx.arc(moonX,52,65,0,Math.PI*2); ctx.fill();
+      // stars (parallax 0.05)
+      bgStars.forEach(s=>{
+        const sx = ((s.wx - cam.x*0.05) % WORLD_W + WORLD_W) % WORLD_W;
+        if(sx>W+10) return;
+        const twinkle = 0.5+0.5*Math.sin(T*0.04+s.b*12);
+        ctx.fillStyle=`rgba(255,255,220,${(0.3+twinkle*0.7).toFixed(2)})`;
+        ctx.beginPath(); ctx.arc(sx,s.y,s.r,0,Math.PI*2); ctx.fill();
+      });
 
-  // far hills (parallax 0.12)
-  drawHills(cam.x*0.12, GY*0.5, GY*0.72, '#160030', 3, 0);
-  drawHills(cam.x*0.18, GY*0.58, GY*0.78, '#0F0020', 5, 200);
+      // moon (parallax 0.03)
+      const moonX = ((W - cam.x*0.03) % (WORLD_W*0.03+W) + W) % (W+400) - 100;
+      ctx.fillStyle='rgba(255,240,180,0.10)'; ctx.beginPath(); ctx.arc(moonX,52,45,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(255,240,180,0.07)'; ctx.beginPath(); ctx.arc(moonX,52,65,0,Math.PI*2); ctx.fill();
+
+      hillCol1='#160030'; hillCol2='#0F0020';
+  }
+
+  // far hills (parallax 0.12) — colors change by theme
+  drawHills(cam.x*0.12, GY*0.5, GY*0.72, hillCol1, 3, 0);
+  drawHills(cam.x*0.18, GY*0.58, GY*0.78, hillCol2, 5, 200);
 
   // ruins (parallax 0.30)
   drawRuins(cam.x*0.30);
@@ -2086,13 +2137,24 @@ function drawSettings(){
     ctx.fillText(l.toUpperCase(), x+25, H/2-99);
   });
 
-  ctx.fillStyle='#888'; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText(t('sfx'), W/2-140, H/2-70);
-  const sfxRect = [W/2-120, H/2-55, 50, 20];
-  ctx.fillStyle = sfxEnabled ? '#76FF03' : '#666'; ctx.fillRect(...sfxRect);
-  ctx.fillStyle = sfxEnabled ? '#000' : '#fff'; ctx.fillText(sfxEnabled ? 'ON' : 'OFF', sfxRect[0]+25, H/2-39);
+  // Theme selection
+  ctx.fillStyle='#888'; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText('TEMA', W/2-140, H/2-50);
+  const themes = ['night','day','sunset','rain','snow'];
+  const themeEmojis = {'night':'🌙','day':'☀️','sunset':'🌅','rain':'🌧️','snow':'❄️'};
+  themes.forEach((th,i)=>{
+    const x = W/2-130+i*50, sel = theme===th;
+    ctx.fillStyle = sel ? '#FFD700' : '#666'; ctx.fillRect(x,H/2-35,40,18);
+    ctx.fillStyle = sel ? '#000' : '#fff'; ctx.font = '14px Arial'; ctx.textAlign='center';
+    ctx.fillText(themeEmojis[th], x+20, H/2-21);
+  });
 
-  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-50, H/2+140, 100, 25);
-  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(t('close'), W/2, H/2+158);
+  ctx.fillStyle='#888'; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText(t('sfx'), W/2-140, H/2+10);
+  const sfxRect = [W/2-120, H/2+25, 50, 20];
+  ctx.fillStyle = sfxEnabled ? '#76FF03' : '#666'; ctx.fillRect(...sfxRect);
+  ctx.fillStyle = sfxEnabled ? '#000' : '#fff'; ctx.font='11px Arial'; ctx.textAlign='center'; ctx.fillText(sfxEnabled ? 'ON' : 'OFF', sfxRect[0]+25, H/2+39);
+
+  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-50, H/2+90, 100, 25);
+  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(t('close'), W/2, H/2+108);
 }
 
 // ─── CHARACTER SELECT ─────────────────────────────────────────────────────
@@ -2194,17 +2256,25 @@ document.addEventListener('click',e=>{
       const langX = W/2-120+i*60;
       if(canvasX > langX && canvasX < langX+50 && canvasY > H/2-115 && canvasY < H/2-95) {
         lang = l; localStorage.setItem('lang', l);
-        // Force reload strings - this is a simplification
+      }
+    });
+
+    // Theme buttons
+    const themes = ['night','day','sunset','rain','snow'];
+    themes.forEach((th,i)=>{
+      const themeX = W/2-130+i*50;
+      if(canvasX > themeX && canvasX < themeX+40 && canvasY > H/2-35 && canvasY < H/2-17) {
+        theme = th; localStorage.setItem('theme', th);
       }
     });
 
     // SFX toggle
-    if(canvasX > W/2-120 && canvasX < W/2-70 && canvasY > H/2-55 && canvasY < H/2-35) {
+    if(canvasX > W/2-120 && canvasX < W/2-70 && canvasY > H/2+25 && canvasY < H/2+45) {
       sfxEnabled = !sfxEnabled; localStorage.setItem('sfxEnabled', sfxEnabled);
     }
 
     // Close button
-    if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+140 && canvasY < H/2+165) {
+    if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+90 && canvasY < H/2+115) {
       settingsOpen = false;
     }
     return;
