@@ -3352,15 +3352,101 @@ loop();
     if(isTouch) btnRst.style.display = 'none';
   };
 
-  // canvas touch → spara (but block during UI overlays)
+  // ─── UI Overlay Touch Handlers ───────────────────────────────────────────
+  // Handle charSelect, settings, leaderboard, shop touches
   canvas.addEventListener('touchstart', e=>{
-    if(charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
-    e.preventDefault(); initAudio();
-    if(!gameOver) startCharge();
+    if(!charSelectOpen && !settingsOpen && !showLeaderboard && !showShop) {
+      // Gameplay mode - fire
+      e.preventDefault(); initAudio();
+      if(!gameOver) startCharge();
+      return;
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Convert touch to click coordinates for UI handling
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    const scale = rect.width / W;
+    const canvasX = x / scale;
+    const canvasY = y / scale;
+
+    // Simulate click handler logic for UI overlays
+    if(charSelectOpen) {
+      const chars = ['mouse','cat','monkey','pavel'];
+      chars.forEach((c,i)=>{
+        const charX = W/2-120+i*60;
+        if(canvasX > charX-20 && canvasX < charX+30 && canvasY > H/2-80 && canvasY < H/2-20) {
+          selectedChar = c;
+          localStorage.setItem('selectedChar', c);
+          console.log('Selected:', c);
+        }
+      });
+      // Play button
+      if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+120 && canvasY < H/2+145) {
+        charSelectOpen = false;
+        console.log('Closing char select, starting game');
+      }
+      return;
+    }
+
+    if(settingsOpen) {
+      const langs = ['it','en','ru'];
+      langs.forEach((l,i)=>{
+        const langX = W/2-120+i*60;
+        if(canvasX > langX && canvasX < langX+50 && canvasY > H/2-115 && canvasY < H/2-95) {
+          lang = l;
+          localStorage.setItem('lang', l);
+        }
+      });
+      const themes = ['night','day','sunset','rain','snow'];
+      themes.forEach((th,i)=>{
+        const themeX = W/2-130+i*50;
+        if(canvasX > themeX && canvasX < themeX+40 && canvasY > H/2-35 && canvasY < H/2-17) {
+          theme = th;
+          localStorage.setItem('theme', th);
+        }
+      });
+      if(canvasX > W/2-120 && canvasX < W/2-70 && canvasY > H/2+25 && canvasY < H/2+45) {
+        sfxEnabled = !sfxEnabled;
+        localStorage.setItem('sfxEnabled', sfxEnabled);
+      }
+      if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+90 && canvasY < H/2+115) {
+        settingsOpen = false;
+      }
+      return;
+    }
+
+    if(showLeaderboard) {
+      if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-35 && canvasY < H-10) {
+        showLeaderboard = false;
+      }
+      return;
+    }
+
+    if(showShop) {
+      const items = [{id:'lives'}, {id:'shield'}, {id:'supporter'}];
+      items.forEach((item, idx)=>{
+        const y = 75 + idx*70;
+        if(canvasX > W-90 && canvasX < W-20 && canvasY > y+15 && canvasY < y+45) {
+          buyItem(item.id);
+        }
+      });
+      if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-35 && canvasY < H-10) {
+        showShop = false;
+      }
+      return;
+    }
   }, {passive:false});
+
   canvas.addEventListener('touchend', e=>{
-    if(charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
-    e.preventDefault(); shoot();
+    if(!charSelectOpen && !settingsOpen && !showLeaderboard && !showShop) {
+      if(!gameOver) shoot();
+    }
+    e.preventDefault();
   }, {passive:false});
 })();
 
