@@ -117,6 +117,24 @@ let charSelectOpen = true;  // open character select at start
 let showLeaderboard = false;
 let showShop = false;
 
+// ─── LEADERBOARD ──────────────────────────────────────────────────────────
+function getLeaderboard() {
+  const data = localStorage.getItem('leaderboard');
+  return data ? JSON.parse(data) : [];
+}
+function saveLeaderboard(entries) {
+  localStorage.setItem('leaderboard', JSON.stringify(entries));
+}
+function addScore(dist, kills, score, charUsed) {
+  const playerName = (window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name) || localStorage.getItem('playerName') || 'Giocatore';
+  const entry = { name: playerName, score, dist, kills, date: new Date().toLocaleDateString('it-IT'), char: charUsed };
+  let board = getLeaderboard();
+  board.push(entry);
+  board.sort((a,b)=>b.dist-a.dist);  // sort by distance desc
+  board = board.slice(0, 10);  // keep top 10
+  saveLeaderboard(board);
+}
+
 // ─── CHARACTERS ────────────────────────────────────────────────────────────
 const CHARS = {
   mouse:  { name: t('mouse'), emoji: '🐭' },
@@ -2099,6 +2117,11 @@ function drawHUD() {
     ctx.fillText(isTouchHint ? '▲▼ angolo   🔥 tieni+rilascia' : '↑↓ angolo   SPAZIO spara', cx, cy+42);
   }
 
+  // LEADERBOARD BUTTON
+  ctx.fillStyle=showLeaderboard?'#FFD700':'#666'; ctx.fillRect(W-90, 8, 37, 25);
+  ctx.fillStyle=showLeaderboard?'#000':'#fff'; ctx.font='18px Arial'; ctx.textAlign='center';
+  ctx.fillText('🏆', W-71.5, 26);
+
   // SETTINGS BUTTON
   ctx.fillStyle=settingsOpen?'#FFD700':'#666'; ctx.fillRect(W-45, 8, 37, 25);
   ctx.fillStyle=settingsOpen?'#000':'#fff'; ctx.font='18px Arial'; ctx.textAlign='center';
@@ -2181,6 +2204,33 @@ function drawCharSelect(){
   ctx.fillText(t('play'), W/2, H/2+138);
 }
 
+// ─── LEADERBOARD ──────────────────────────────────────────────────────────
+function drawLeaderboard(){
+  if(!showLeaderboard) return;
+  ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#222'; ctx.fillRect(10,20,W-20,H-40);
+  ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(10,20,W-20,H-40);
+  ctx.fillStyle='#FFD700'; ctx.font='bold 16px Arial'; ctx.textAlign='center';
+  ctx.fillText('🏆 CLASSIFICA TOP 10', W/2, 45);
+
+  const board = getLeaderboard();
+  ctx.font='11px Arial'; ctx.fillStyle='#ccc'; ctx.textAlign='left';
+  ctx.fillText('RANK', 20, 65); ctx.fillText('NOME', 60, 65); ctx.fillText('DISTANZA', 180, 65); ctx.fillText('SCORE', 280, 65);
+
+  board.forEach((entry, idx)=>{
+    const y = 85 + idx*25;
+    ctx.fillStyle = idx<3 ? '#FFD700' : '#aaa';
+    ctx.fillText(`${idx+1}`, 20, y);
+    ctx.fillText(entry.name.substring(0,12), 60, y);
+    ctx.fillText(`${entry.dist}m`, 180, y);
+    ctx.fillText(entry.score, 280, y);
+  });
+
+  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-40, H-35, 80, 25);
+  ctx.fillStyle='#fff'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
+  ctx.fillText('CHIUDI', W/2, H-18);
+}
+
 // ─── GAME OVER ───────────────────────────────────────────────────────────
 function drawGameOver(){
   ctx.fillStyle='rgba(0,0,0,0.82)'; ctx.fillRect(0,0,W,H);
@@ -2218,18 +2268,18 @@ document.addEventListener('keyup',e=>{
   if(e.code==='Space')shoot();
 });
 canvas.addEventListener('mousedown',e=>{
-  if(charSelectOpen || settingsOpen) { e.preventDefault(); e.stopPropagation(); return; }
+  if(charSelectOpen || settingsOpen || showLeaderboard) { e.preventDefault(); e.stopPropagation(); return; }
   initAudio();if(e.button===0&&!gameOver)startCharge();
 });
 canvas.addEventListener('mouseup',e=>{
-  if(charSelectOpen || settingsOpen) { e.preventDefault(); e.stopPropagation(); return; }
+  if(charSelectOpen || settingsOpen || showLeaderboard) { e.preventDefault(); e.stopPropagation(); return; }
   if(e.button===0)shoot();
 });
 
 // click handlers for UI buttons
 document.addEventListener('click',e=>{
-  // Always block clicks during character select or settings
-  if(charSelectOpen || settingsOpen) {
+  // Always block clicks during UI overlays
+  if(charSelectOpen || settingsOpen || showLeaderboard) {
     e.preventDefault();
     e.stopPropagation();
   }
@@ -2238,6 +2288,13 @@ document.addEventListener('click',e=>{
   const x = e.clientX - rect.left, y = e.clientY - rect.top;
   const scale = rect.width / W;
   const canvasX = x / scale, canvasY = y / scale;
+
+  // Leaderboard button (🏆)
+  if(canvasX > W-90 && canvasX < W-53 && canvasY > 8 && canvasY < 33) {
+    showLeaderboard = !showLeaderboard;
+    e.preventDefault();
+    e.stopPropagation();
+  }
 
   // Settings button (⚙️)
   if(canvasX > W-45 && canvasX < W-8 && canvasY > 8 && canvasY < 33) {
@@ -2280,6 +2337,17 @@ document.addEventListener('click',e=>{
     return;
   }
 
+  // Leaderboard close button
+  if(showLeaderboard) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Close button at W/2-40, H-35, 80x25
+    if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-35 && canvasY < H-10) {
+      showLeaderboard = false;
+    }
+    return;
+  }
+
   // Character select clicks
   if(!gameOver && !charSelectOpen) {
     // Open char select if no game running
@@ -2308,15 +2376,15 @@ document.addEventListener('click',e=>{
   }
 });
 
-// Block touch events during character select or settings
+// Block touch events during UI overlays
 document.addEventListener('touchstart', e=>{
-  if(charSelectOpen || settingsOpen) {
+  if(charSelectOpen || settingsOpen || showLeaderboard) {
     e.preventDefault();
     e.stopPropagation();
   }
 }, {passive:false});
 document.addEventListener('touchend', e=>{
-  if(charSelectOpen || settingsOpen) {
+  if(charSelectOpen || settingsOpen || showLeaderboard) {
     e.preventDefault();
     e.stopPropagation();
   }
@@ -2338,6 +2406,7 @@ function restart(){
   score=0;mLeft=3;kills=0;lastDist=0;
   power=0;charging=false;gameOver=false;animState=null;
   cam.x=0;cam.tx=0;cam.y=0;cam.ty=0;muzzleFlash=0;
+  window._gameOverSaved = false;
   genLevel();
 }
 
@@ -2601,7 +2670,14 @@ function loop(){
   }
   drawSettings();
   drawCharSelect();
-  if(gameOver) drawGameOver();
+  drawLeaderboard();
+  if(gameOver) {
+    if(!window._gameOverSaved) {
+      addScore(lastDist, kills, score, selectedChar);
+      window._gameOverSaved = true;
+    }
+    drawGameOver();
+  }
 
   requestAnimationFrame(loop);
 }
