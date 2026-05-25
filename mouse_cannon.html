@@ -395,14 +395,6 @@ function drawGround() {
 }
 
 // ─── OBSTACLES (world space) ──────────────────────────────────────────────
-function drawFogOfWar() {
-  // nebbia destra — nasconde ciò che non si è ancora visto
-  const fogGrad=ctx.createLinearGradient(W-80,0,W,0);
-  fogGrad.addColorStop(0,'rgba(3,0,13,0)');
-  fogGrad.addColorStop(1,'rgba(3,0,13,1)');
-  ctx.fillStyle=fogGrad; ctx.fillRect(W-80,0,80,H);
-}
-
 function drawObstacles() {
   obstacles.forEach(o=>{
     const sx=o.cx - cam.x;
@@ -2742,7 +2734,6 @@ function loop(){
     drawTexts();       // testi in world space (seguono la camera)
     ctx.restore();
 
-  drawFogOfWar(); // nebbia destra (screen space)
   ctx.restore();
 
   drawHUD();
