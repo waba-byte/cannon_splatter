@@ -116,6 +116,8 @@ let settingsOpen = false;
 let charSelectOpen = true;  // open character select at start
 let showLeaderboard = false;
 let showShop = false;
+let hasShield = JSON.parse(localStorage.getItem('hasShield') ?? 'false');
+let extraLives = parseInt(localStorage.getItem('extraLives') ?? '0');
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────
 function getLeaderboard() {
@@ -2117,6 +2119,11 @@ function drawHUD() {
     ctx.fillText(isTouchHint ? '▲▼ angolo   🔥 tieni+rilascia' : '↑↓ angolo   SPAZIO spara', cx, cy+42);
   }
 
+  // SHOP BUTTON
+  ctx.fillStyle=showShop?'#FFD700':'#666'; ctx.fillRect(W-135, 8, 37, 25);
+  ctx.fillStyle=showShop?'#000':'#fff'; ctx.font='18px Arial'; ctx.textAlign='center';
+  ctx.fillText('💰', W-116.5, 26);
+
   // LEADERBOARD BUTTON
   ctx.fillStyle=showLeaderboard?'#FFD700':'#666'; ctx.fillRect(W-90, 8, 37, 25);
   ctx.fillStyle=showLeaderboard?'#000':'#fff'; ctx.font='18px Arial'; ctx.textAlign='center';
@@ -2231,6 +2238,41 @@ function drawLeaderboard(){
   ctx.fillText('CHIUDI', W/2, H-18);
 }
 
+// ─── SHOP ────────────────────────────────────────────────────────────────
+function drawShop(){
+  if(!showShop) return;
+  ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#222'; ctx.fillRect(10,20,W-20,H-40);
+  ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(10,20,W-20,H-40);
+  ctx.fillStyle='#FFD700'; ctx.font='bold 14px Arial'; ctx.textAlign='center';
+  ctx.fillText('💎 SHOP - TELEGRAM STARS', W/2, 45);
+
+  const items = [
+    {emoji:'🐭', name:'+3 Vite', price:25, id:'lives'},
+    {emoji:'🛡️', name:'Scudo', price:50, id:'shield'},
+    {emoji:'💎', name:'Supporter', price:100, id:'supporter'}
+  ];
+
+  items.forEach((item, idx)=>{
+    const y = 75 + idx*70;
+    ctx.fillStyle='#444'; ctx.fillRect(20, y, W-40, 60);
+    ctx.strokeStyle='#FFD700'; ctx.lineWidth=1; ctx.strokeRect(20, y, W-40, 60);
+    ctx.fillStyle='#fff'; ctx.font='22px Arial'; ctx.textAlign='left';
+    ctx.fillText(item.emoji, 35, y+35);
+    ctx.fillStyle='#FFD700'; ctx.font='bold 12px Arial';
+    ctx.fillText(item.name, 75, y+28);
+    ctx.fillStyle='#aaa'; ctx.font='11px Arial';
+    ctx.fillText(`${item.price} ⭐`, 75, y+45);
+    ctx.fillStyle='#0F0'; ctx.fillRect(W-90, y+15, 70, 30);
+    ctx.fillStyle='#000'; ctx.font='bold 11px Arial'; ctx.textAlign='center';
+    ctx.fillText('COMPRA', W-55, y+36);
+  });
+
+  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-40, H-35, 80, 25);
+  ctx.fillStyle='#fff'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
+  ctx.fillText('CHIUDI', W/2, H-18);
+}
+
 // ─── GAME OVER ───────────────────────────────────────────────────────────
 function drawGameOver(){
   ctx.fillStyle='rgba(0,0,0,0.82)'; ctx.fillRect(0,0,W,H);
@@ -2268,18 +2310,18 @@ document.addEventListener('keyup',e=>{
   if(e.code==='Space')shoot();
 });
 canvas.addEventListener('mousedown',e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard) { e.preventDefault(); e.stopPropagation(); return; }
+  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
   initAudio();if(e.button===0&&!gameOver)startCharge();
 });
 canvas.addEventListener('mouseup',e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard) { e.preventDefault(); e.stopPropagation(); return; }
+  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
   if(e.button===0)shoot();
 });
 
 // click handlers for UI buttons
 document.addEventListener('click',e=>{
   // Always block clicks during UI overlays
-  if(charSelectOpen || settingsOpen || showLeaderboard) {
+  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
     e.preventDefault();
     e.stopPropagation();
   }
@@ -2288,6 +2330,13 @@ document.addEventListener('click',e=>{
   const x = e.clientX - rect.left, y = e.clientY - rect.top;
   const scale = rect.width / W;
   const canvasX = x / scale, canvasY = y / scale;
+
+  // Shop button (💰)
+  if(canvasX > W-135 && canvasX < W-98 && canvasY > 8 && canvasY < 33) {
+    showShop = !showShop;
+    e.preventDefault();
+    e.stopPropagation();
+  }
 
   // Leaderboard button (🏆)
   if(canvasX > W-90 && canvasX < W-53 && canvasY > 8 && canvasY < 33) {
@@ -2348,6 +2397,25 @@ document.addEventListener('click',e=>{
     return;
   }
 
+  // Shop clicks
+  if(showShop) {
+    e.preventDefault();
+    e.stopPropagation();
+    const items = [{id:'lives'}, {id:'shield'}, {id:'supporter'}];
+    items.forEach((item, idx)=>{
+      const y = 75 + idx*70;
+      // Buy button: W-90 to W-20, y to y+30
+      if(canvasX > W-90 && canvasX < W-20 && canvasY > y+15 && canvasY < y+45) {
+        buyItem(item.id);
+      }
+    });
+    // Close button at W/2-40, H-35, 80x25
+    if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-35 && canvasY < H-10) {
+      showShop = false;
+    }
+    return;
+  }
+
   // Character select clicks
   if(!gameOver && !charSelectOpen) {
     // Open char select if no game running
@@ -2378,17 +2446,38 @@ document.addEventListener('click',e=>{
 
 // Block touch events during UI overlays
 document.addEventListener('touchstart', e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard) {
+  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
     e.preventDefault();
     e.stopPropagation();
   }
 }, {passive:false});
 document.addEventListener('touchend', e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard) {
+  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
     e.preventDefault();
     e.stopPropagation();
   }
 }, {passive:false});
+
+function buyItem(itemId) {
+  const items = {
+    lives: { name: '+3 Vite', price: 25 },
+    shield: { name: 'Scudo', price: 50 },
+    supporter: { name: 'Supporter', price: 100 }
+  };
+  const item = items[itemId];
+  if(!item) return;
+
+  // Simulated purchase (would need real Telegram invoice in production)
+  texts.push({wx:W/2, wy:H/2-100, text:`💳 ${item.name} - ${item.price}⭐`, color:'#FFD700', life:2, vy:0, size:14});
+
+  if(itemId === 'lives') {
+    mLeft += 3;
+    localStorage.setItem('extraLives', (extraLives + 3).toString());
+  } else if(itemId === 'shield') {
+    hasShield = true;
+    localStorage.setItem('hasShield', 'true');
+  }
+}
 
 function startCharge(){
   if(mLeft<=0||animState)return;
@@ -2671,6 +2760,7 @@ function loop(){
   drawSettings();
   drawCharSelect();
   drawLeaderboard();
+  drawShop();
   if(gameOver) {
     if(!window._gameOverSaved) {
       addScore(lastDist, kills, score, selectedChar);
