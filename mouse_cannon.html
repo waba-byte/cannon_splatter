@@ -51,7 +51,8 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const W = 390, H = 700;
 const GY = 590;          // ground Y (screen/world)
-const WORLD_W = 7000;    // world width in px
+let WORLD_W = 7000;      // world width in px (grows dynamically)
+let maxGeneratedX = 7000; // max X coordinate where obstacles are generated
 const METER = 12;        // px per meter
 
 // ─── STATE ───────────────────────────────────────────────────────────────
@@ -70,6 +71,60 @@ let muzzleFlash = 0;
 
 const CANNON_WX = 80; // cannon world x
 
+// ─── INTERNATIONALIZATION (i18n) ─────────────────────────────────────────
+const STRINGS = {
+  it: {
+    fire: 'TIENI', restart: 'RIGIOCA', best: 'BEST', kills: 'KILL', score: 'PTS',
+    grade: 'GRADO', settings: 'IMPOSTAZIONI', lang: 'LINGUA', sfx: 'EFFETTI SONORI',
+    music: 'MUSICA', theme: 'TEMA', char: 'PERSONAGGIO', select_char: 'SCEGLI PERSONAGGIO',
+    play: 'GIOCA', leaderboard: 'CLASSIFICA', shop: 'SHOP', game_over: 'GAME OVER',
+    distance: 'DISTANZA', night: 'NOTTE', day: 'GIORNO', sunset: 'TRAMONTO',
+    rain: 'PIOGGIA', snow: 'NEVE', close: 'CHIUDI', buy: 'ACQUISTA', stars: 'STELLE',
+    add_lives: '+3 VITE', shield: 'SCUDO', cosmetics: 'COSMETICS', supporter: 'SUPPORTER',
+    mouse: 'TOPO', cat: 'GATTINO', monkey: 'SCIMMIA', pavel: 'PAVEL'
+  },
+  en: {
+    fire: 'HOLD', restart: 'REPLAY', best: 'BEST', kills: 'KILL', score: 'PTS',
+    grade: 'GRADE', settings: 'SETTINGS', lang: 'LANGUAGE', sfx: 'SFX',
+    music: 'MUSIC', theme: 'THEME', char: 'CHARACTER', select_char: 'SELECT CHARACTER',
+    play: 'PLAY', leaderboard: 'LEADERBOARD', shop: 'SHOP', game_over: 'GAME OVER',
+    distance: 'DISTANCE', night: 'NIGHT', day: 'DAY', sunset: 'SUNSET',
+    rain: 'RAIN', snow: 'SNOW', close: 'CLOSE', buy: 'BUY', stars: 'STARS',
+    add_lives: '+3 LIVES', shield: 'SHIELD', cosmetics: 'COSMETICS', supporter: 'SUPPORTER',
+    mouse: 'MOUSE', cat: 'CAT', monkey: 'MONKEY', pavel: 'PAVEL'
+  },
+  ru: {
+    fire: 'ДЕРЖИ', restart: 'ЗАНОВО', best: 'РЕКОРД', kills: 'УБИЙ', score: 'ОЧКИ',
+    grade: 'УРОВЕНЬ', settings: 'НАСТРОЙКИ', lang: 'ЯЗЫК', sfx: 'ЗВУК',
+    music: 'МУЗЫКА', theme: 'ТЕМА', char: 'ПЕРСОНАЖ', select_char: 'ВЫБЕРИ ПЕРСОНАЖ',
+    play: 'ИГРАТЬ', leaderboard: 'ТАБЛИЦА', shop: 'МАГАЗИН', game_over: 'КОНЕЦ ИГРЫ',
+    distance: 'РАССТОЯНИЕ', night: 'НОЧЬ', day: 'ДЕНЬ', sunset: 'ЗАКАТ',
+    rain: 'ДОЖДЬ', snow: 'СНЕГ', close: 'ЗАКРЫТЬ', buy: 'КУПИТЬ', stars: 'ЗВЕЗДЫ',
+    add_lives: '+3 ЖИЗНИ', shield: 'ЩИТ', cosmetics: 'СKINS', supporter: 'СТОРОННИК',
+    mouse: 'МЫШЬ', cat: 'КОШКА', monkey: 'ОБЕЗЬЯНА', pavel: 'ПАВЕЛ'
+  }
+};
+let lang = localStorage.getItem('lang') || 'it';
+const t = key => STRINGS[lang][key] || key;
+
+// ─── SETTINGS STATE ────────────────────────────────────────────────────────
+let sfxEnabled = JSON.parse(localStorage.getItem('sfxEnabled') ?? 'true');
+let musicVol = parseInt(localStorage.getItem('musicVol') ?? '70');
+let theme = localStorage.getItem('theme') || 'night';
+let selectedChar = localStorage.getItem('selectedChar') || 'mouse';
+let settingsOpen = false;
+let charSelectOpen = false;
+let showLeaderboard = false;
+let showShop = false;
+
+// ─── CHARACTERS ────────────────────────────────────────────────────────────
+const CHARS = {
+  mouse:  { name: t('mouse'), emoji: '🐭' },
+  cat:    { name: t('cat'), emoji: '🐱' },
+  monkey: { name: t('monkey'), emoji: '🐒' },
+  pavel:  { name: t('pavel'), emoji: '👤' }
+};
+
 // ─── LEVEL GENERATION ────────────────────────────────────────────────────
 const KILL_TYPES   = ['TNT','SPIKE','KNIFE','CACTUS','ACID','SAW','BEAR','BIRD','PLANE','CHAINSAW'];
 const BOUNCE_TYPES = ['SPRING','MUSHROOM','CLOUD','BALLOON'];
@@ -77,9 +132,8 @@ const RADII = { TNT:28,SPIKE:38,KNIFE:24,CACTUS:32,ACID:60,SAW:34,BEAR:30,SPRING
 
 function genLevel() {
   obstacles = [];
-  // Tutto parte da x=1100 — nulla visibile alla schermata iniziale (W=900)
   let x = 1100;
-  while(x < WORLD_W - 300) {
+  while(x < maxGeneratedX - 300) {
     const isKill = Math.random() < 0.5;
     const type = isKill
       ? KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)]
@@ -102,13 +156,42 @@ function genLevel() {
     x += 130 + Math.random()*180;
   }
 
-  // primi 3 elementi utili (rimbalzi) — tutti oltre il bordo iniziale
   obstacles.unshift(
     { type:'SPRING',   cx:1100, cy:GY,  r:20, _drift:0 },
     { type:'CLOUD',    cx:1350, cy:150, r:44, _drift:0 },
     { type:'MUSHROOM', cx:1600, cy:GY,  r:26, _drift:0 }
   );
 }
+
+function genMore(fromX) {
+  let x = fromX;
+  const endX = fromX + 2000;
+  while(x < endX) {
+    const isKill = Math.random() < 0.5;
+    const type = isKill
+      ? KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)]
+      : BOUNCE_TYPES[Math.floor(Math.random()*BOUNCE_TYPES.length)];
+
+    let cy;
+    if(type === 'CLOUD')     cy = 80 + Math.random()*160;
+    else if(type === 'BALLOON')  cy = 50 + Math.random()*200;
+    else if(type === 'BIRD')     cy = 80 + Math.random()*200;
+    else if(type === 'PLANE')    cy = 10 + Math.random()*80;
+    else if(type === 'CHAINSAW') cy = 30 + Math.random()*120;
+    else if(type === 'SAW' && Math.random()<0.5) cy = GY - 100 - Math.random()*120;
+    else cy = GY;
+
+    const extra = {};
+    if(type==='BIRD')  extra._spd = 1.2 + Math.random()*0.9;
+    if(type==='PLANE') extra._spd = 2.2 + Math.random()*1.5;
+    if(type==='CHAINSAW') extra._chainLen = 140 + Math.floor(Math.random()*90);
+    obstacles.push({ type, cx:x, cy, r:RADII[type], _drift:0, ...extra });
+    x += 130 + Math.random()*180;
+  }
+  maxGeneratedX = Math.max(maxGeneratedX, endX);
+  WORLD_W = maxGeneratedX + 1000;
+}
+
 genLevel();
 
 // stars
@@ -132,7 +215,9 @@ function updateCam() {
   }
   cam.tx = Math.max(0, Math.min(WORLD_W - W, cam.tx));
   cam.ty = Math.max(-2000, Math.min(0, cam.ty));
-  cam.x += (cam.tx - cam.x) * 0.06;
+  // adaptive lerp: faster movement = faster camera follow
+  const lerpFactor = 0.06 + (mouse ? Math.abs(mouse.vx) * 0.004 : 0);
+  cam.x += (cam.tx - cam.x) * lerpFactor;
   const _dy = cam.ty - cam.y;
   cam.y += _dy * Math.min(0.20, 0.07 + Math.abs(_dy) * 0.00025);
 }
@@ -575,9 +660,7 @@ function drawMouse(m) {
   if(!m||!m.alive) return;
   const sx = m.wx - cam.x; // screen x
   const spd = Math.hypot(m.vx,m.vy);
-  // dissoluzione acido: riduce alpha progressivamente
   ctx.save();
-  if(m.inAcid > 0) ctx.globalAlpha = Math.max(0.10, m.inAcid/120);
   const va = Math.atan2(m.vy,m.vx);
 
   // shadow
@@ -1964,6 +2047,11 @@ function drawHUD() {
     ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='12px Arial';
     ctx.fillText(isTouchHint ? '▲▼ angolo   🔥 tieni+rilascia' : '↑↓ angolo   SPAZIO spara', cx, cy+42);
   }
+
+  // SETTINGS BUTTON
+  ctx.fillStyle=settingsOpen?'#FFD700':'#666'; ctx.fillRect(W-45, 8, 37, 25);
+  ctx.fillStyle=settingsOpen?'#000':'#fff'; ctx.font='18px Arial'; ctx.textAlign='center';
+  ctx.fillText('⚙️', W-26.5, 26);
 }
 
 function drawTexts(){
@@ -1979,6 +2067,57 @@ function drawTexts(){
 
 // ─── DEATH FLASH ─────────────────────────────────────────────────────────
 function drawFlash(){ /* rimosso — niente più flash schermo */ }
+
+// ─── SETTINGS OVERLAY ─────────────────────────────────────────────────────
+function drawSettings(){
+  if(!settingsOpen) return;
+  ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#222'; ctx.fillRect(W/2-150,H/2-180,300,360);
+  ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(W/2-150,H/2-180,300,360);
+  ctx.fillStyle='#FFD700'; ctx.font='bold 18px Arial'; ctx.textAlign='center';
+  ctx.fillText(t('settings'), W/2, H/2-160);
+
+  ctx.fillStyle='#888'; ctx.font='12px Arial'; ctx.textAlign='left';
+  ctx.fillText(t('lang'), W/2-140, H/2-130);
+  ['it','en','ru'].forEach((l,i)=>{
+    const x = W/2-120+i*60, sel = lang===l;
+    ctx.fillStyle = sel ? '#FFD700' : '#666'; ctx.fillRect(x,H/2-115,50,20);
+    ctx.fillStyle = sel ? '#000' : '#fff'; ctx.font = sel ? 'bold 12px Arial' : '11px Arial'; ctx.textAlign='center';
+    ctx.fillText(l.toUpperCase(), x+25, H/2-99);
+  });
+
+  ctx.fillStyle='#888'; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText(t('sfx'), W/2-140, H/2-70);
+  const sfxRect = [W/2-120, H/2-55, 50, 20];
+  ctx.fillStyle = sfxEnabled ? '#76FF03' : '#666'; ctx.fillRect(...sfxRect);
+  ctx.fillStyle = sfxEnabled ? '#000' : '#fff'; ctx.fillText(sfxEnabled ? 'ON' : 'OFF', sfxRect[0]+25, H/2-39);
+
+  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-50, H/2+140, 100, 25);
+  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(t('close'), W/2, H/2+158);
+}
+
+// ─── CHARACTER SELECT ─────────────────────────────────────────────────────
+function drawCharSelect(){
+  if(!charSelectOpen) return;
+  ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#222'; ctx.fillRect(W/2-160,H/2-150,320,300);
+  ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(W/2-160,H/2-150,320,300);
+  ctx.fillStyle='#FFD700'; ctx.font='bold 18px Arial'; ctx.textAlign='center';
+  ctx.fillText(t('select_char'), W/2, H/2-130);
+
+  const chars = ['mouse','cat','monkey','pavel'];
+  chars.forEach((c,i)=>{
+    const x = W/2-120+i*60, sel = selectedChar===c;
+    ctx.fillStyle = sel ? '#FFD700' : '#666'; ctx.fillRect(x-20, H/2-80, 50, 60);
+    ctx.fillStyle = sel ? '#000' : '#fff'; ctx.font='28px Arial'; ctx.textAlign='center';
+    ctx.fillText(CHARS[c].emoji, x+10, H/2-40);
+    ctx.fillStyle = sel ? '#FFD700' : '#888'; ctx.font='10px Arial';
+    ctx.fillText(CHARS[c].name, x+10, H/2-10);
+  });
+
+  ctx.fillStyle='#3fb950'; ctx.fillRect(W/2-50, H/2+120, 100, 25);
+  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center';
+  ctx.fillText(t('play'), W/2, H/2+138);
+}
 
 // ─── GAME OVER ───────────────────────────────────────────────────────────
 function drawGameOver(){
@@ -2018,6 +2157,63 @@ document.addEventListener('keyup',e=>{
 });
 canvas.addEventListener('mousedown',e=>{initAudio();if(e.button===0&&!gameOver)startCharge();});
 canvas.addEventListener('mouseup',e=>{if(e.button===0)shoot();});
+
+// click handlers for UI buttons
+document.addEventListener('click',e=>{
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const scale = rect.width / W;
+  const canvasX = x / scale, canvasY = y / scale;
+
+  // Settings button (⚙️)
+  if(canvasX > W-45 && canvasX < W-8 && canvasY > 8 && canvasY < 33) {
+    settingsOpen = !settingsOpen;
+  }
+
+  // If settings open, handle settings clicks
+  if(settingsOpen) {
+    // Language buttons
+    const langs = ['it','en','ru'];
+    langs.forEach((l,i)=>{
+      const langX = W/2-120+i*60;
+      if(canvasX > langX && canvasX < langX+50 && canvasY > H/2-115 && canvasY < H/2-95) {
+        lang = l; localStorage.setItem('lang', l);
+        // Force reload strings - this is a simplification
+      }
+    });
+
+    // SFX toggle
+    if(canvasX > W/2-120 && canvasX < W/2-70 && canvasY > H/2-55 && canvasY < H/2-35) {
+      sfxEnabled = !sfxEnabled; localStorage.setItem('sfxEnabled', sfxEnabled);
+    }
+
+    // Close button
+    if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+140 && canvasY < H/2+165) {
+      settingsOpen = false;
+    }
+  }
+
+  // Character select clicks
+  if(!gameOver && !charSelectOpen) {
+    // Open char select if no game running
+    if(!mouse && !gameOver) charSelectOpen = true;
+  }
+
+  if(charSelectOpen) {
+    const chars = ['mouse','cat','monkey','pavel'];
+    chars.forEach((c,i)=>{
+      const charX = W/2-120+i*60;
+      if(canvasX > charX-20 && canvasX < charX+30 && canvasY > H/2-80 && canvasY < H/2+20) {
+        selectedChar = c; localStorage.setItem('selectedChar', c);
+      }
+    });
+
+    // Play button
+    if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+120 && canvasY < H/2+145) {
+      charSelectOpen = false;
+    }
+  }
+});
 
 function startCharge(){
   if(mLeft<=0||animState)return;
@@ -2224,11 +2420,21 @@ function loop(){
     if(mouse) updateMouse(mouse);
   }
 
+  // infinite distance: generate more obstacles as player advances
+  if(mouse && mouse.alive && mouse.wx > maxGeneratedX - 1000) {
+    genMore(maxGeneratedX);
+  }
+
   // animazione avanza sempre
   if(animState){
     // Yahoo! esattamente quando inizia la fase vittoria (78%)
     if(animState.phase==='safe' && animState.t===Math.floor(animState.dur*0.78)) sfxYahoo();
     animState.t++;
+    // during death animation, apply gravity so falling from sky obstacles
+    if(animState.phase === 'death') {
+      animState.mvy = (animState.mvy || 0) + 0.10;
+      animState.wy += animState.mvy;
+    }
     if(animState.t >= animState.dur){
       // fine animazione: aggiungi cadavere persistente e pulisci
       if(animState.phase==='death')
@@ -2286,6 +2492,8 @@ function loop(){
     ctx.fillText(animState.phase==='safe'?'CE LA FA... 😅':'MORT ACCIDENTE... 💀', W/2, H-18);
     ctx.restore();
   }
+  drawSettings();
+  drawCharSelect();
   if(gameOver) drawGameOver();
 
   requestAnimationFrame(loop);
