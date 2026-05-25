@@ -2203,15 +2203,15 @@ document.addEventListener('click',e=>{
     const chars = ['mouse','cat','monkey','pavel'];
     chars.forEach((c,i)=>{
       const charX = W/2-120+i*60;
-      // larger hitbox for character selection
-      if(canvasX > charX-35 && canvasX < charX+45 && canvasY > H/2-100 && canvasY < H/2+40) {
+      // hitbox matches drawn rect: x-20 to x+30, H/2-80 to H/2-20
+      if(canvasX > charX-20 && canvasX < charX+30 && canvasY > H/2-80 && canvasY < H/2-20) {
         selectedChar = c; localStorage.setItem('selectedChar', c);
         console.log('Selected:', c);
       }
     });
 
-    // Play button - larger hitbox
-    if(canvasX > W/2-60 && canvasX < W/2+60 && canvasY > H/2+110 && canvasY < H/2+160) {
+    // Play button hitbox matches drawn rect: W/2-50 to W/2+50, H/2+120 to H/2+145
+    if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+120 && canvasY < H/2+145) {
       charSelectOpen = false;
       console.log('Closing char select, starting game');
     }
