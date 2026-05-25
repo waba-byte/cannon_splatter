@@ -90,7 +90,9 @@ const STRINGS = {
     replay_hint_kb: '[ R ] per rigiocare', replay_hint_touch: 'Tocca per rigiocare',
     death_tnt: '💥 KABOOM!!', death_spike: '🩸 INFILZATO!', death_knife: '🔪 AFFETTATO!', death_cactus: '🌵 TRAPASSATO!',
     death_acid: '☠️ DISCIOLTO!', death_saw: '🪚 SEGATOOOO!', death_bear: '🪤 SCROCCHIATE!', death_ground: '💢 SCHIACCIATO!',
-    death_bird: '🐦 BECCATO!', death_plane: '✈️ ABBATTUTO!', death_chainsaw: '⛓️ DILANIATO!', death_lightning: '⚡ FULMINATO!', death_stop: '😵 FERMATO!'
+    death_bird: '🐦 BECCATO!', death_plane: '✈️ ABBATTUTO!', death_chainsaw: '⛓️ DILANIATO!', death_lightning: '⚡ FULMINATO!', death_stop: '😵 FERMATO!',
+    name_input_hint: '📱 Inserisci nome quando richiesto...',
+    shop_title: '💎 SHOP - TELEGRAM STARS', item_lives: '+3 VITE', item_shield: 'SCUDO', item_supporter: 'SUPPORTER'
   },
   en: {
     fire: 'HOLD', restart: 'REPLAY', best: 'BEST', kills: 'KILL', score: 'PTS',
@@ -109,7 +111,9 @@ const STRINGS = {
     replay_hint_kb: '[ R ] to replay', replay_hint_touch: 'Tap to replay',
     death_tnt: '💥 BOOM!!', death_spike: '🩸 SPIKED!', death_knife: '🔪 SLICED!', death_cactus: '🌵 POKED!',
     death_acid: '☠️ DISSOLVED!', death_saw: '🪚 SAWED!', death_bear: '🪤 TRAPPED!', death_ground: '💢 CRUSHED!',
-    death_bird: '🐦 PECKED!', death_plane: '✈️ SHOT DOWN!', death_chainsaw: '⛓️ SHREDDED!', death_lightning: '⚡ ZAPPED!', death_stop: '😵 STOPPED!'
+    death_bird: '🐦 PECKED!', death_plane: '✈️ SHOT DOWN!', death_chainsaw: '⛓️ SHREDDED!', death_lightning: '⚡ ZAPPED!', death_stop: '😵 STOPPED!',
+    name_input_hint: '📱 Enter your name when prompted...',
+    shop_title: '💎 SHOP - TELEGRAM STARS', item_lives: '+3 LIVES', item_shield: 'SHIELD', item_supporter: 'SUPPORTER'
   },
   ru: {
     fire: 'ДЕРЖИ', restart: 'ЗАНОВО', best: 'РЕКОРД', kills: 'УБИЙ', score: 'ОЧКИ',
@@ -128,7 +132,9 @@ const STRINGS = {
     replay_hint_kb: '[ R ] для переигровки', replay_hint_touch: 'Нажмите для переигровки',
     death_tnt: '💥 БУМ!!', death_spike: '🩸 НАКОЛОТЫЙ!', death_knife: '🔪 НАРЕЗАННЫЙ!', death_cactus: '🌵 ПРОКОЛОТЫЙ!',
     death_acid: '☠️ РАСТВОРЕННЫЙ!', death_saw: '🪚 РАСПИЛЕН!', death_bear: '🪤 ПОЙМАН!', death_ground: '💢 РАЗДАВЛЕН!',
-    death_bird: '🐦 КЛЮНУТ!', death_plane: '✈️ СБИТ!', death_chainsaw: '⛓️ ИЗМЕЛЬЧЕН!', death_lightning: '⚡ ПОРАЖЕН!', death_stop: '😵 ОСТАНОВЛЕН!'
+    death_bird: '🐦 КЛЮНУТ!', death_plane: '✈️ СБИТ!', death_chainsaw: '⛓️ ИЗМЕЛЬЧЕН!', death_lightning: '⚡ ПОРАЖЕН!', death_stop: '😵 ОСТАНОВЛЕН!',
+    name_input_hint: '📱 Введите имя когда вас попросят...',
+    shop_title: '💎 МАГАЗИН - TELEGRAM STARS', item_lives: '+3 ЖИЗНИ', item_shield: 'ЩИТ', item_supporter: 'СТОРОННИК'
   }
 };
 let lang = localStorage.getItem('lang') || 'it';
@@ -139,9 +145,11 @@ let sfxEnabled = JSON.parse(localStorage.getItem('sfxEnabled') ?? 'true');
 let musicVol = parseInt(localStorage.getItem('musicVol') ?? '70');
 let theme = localStorage.getItem('theme') || 'night';
 let selectedChar = localStorage.getItem('selectedChar') || 'mouse';
-let playerName = localStorage.getItem('playerName') || '';
-let playerNameScreenOpen = !playerName;  // show name screen if no name saved
-let charSelectOpen = !playerNameScreenOpen;  // only show char select after name
+// Try to get name from Telegram user first, then localStorage, then ask
+let playerName = (window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name) || localStorage.getItem('playerName') || '';
+const isTelegramApp = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
+let playerNameScreenOpen = !playerName && !isTelegramApp;  // only show name screen on web if no name
+let charSelectOpen = playerName || isTelegramApp;  // skip to char select if name exists or on Telegram
 let namePromptShown = false;  // track if we've already shown the prompt
 let settingsOpen = false;
 let showLeaderboard = false;
@@ -2621,7 +2629,7 @@ function drawSettings(){
   });
 
   // Theme selection
-  ctx.fillStyle='#888'; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText('TEMA', W/2-140, H/2-50);
+  ctx.fillStyle='#888'; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText(t('theme'), W/2-140, H/2-50);
   const themes = ['night','day','sunset','rain','snow'];
   const themeEmojis = {'night':'🌙','day':'☀️','sunset':'🌅','rain':'🌧️','snow':'❄️'};
   themes.forEach((th,i)=>{
@@ -2676,7 +2684,7 @@ function drawNameInputScreen(){
   ctx.fillStyle='#FFD700'; ctx.font='bold 20px Arial'; ctx.textAlign='center';
   ctx.fillText('👤 ' + t('enter_name'), W/2, H/2-90);
   ctx.fillStyle='#FFD700'; ctx.font='13px Arial';
-  ctx.fillText('📱 Inserisci nome quando richiesto...', W/2, H/2+80);
+  ctx.fillText(t('name_input_hint'), W/2, H/2+80);
 }
 
 function drawCharSelect(){
@@ -2736,12 +2744,12 @@ function drawShop(){
   ctx.fillStyle='#222'; ctx.fillRect(10,20,W-20,H-40);
   ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(10,20,W-20,H-40);
   ctx.fillStyle='#FFD700'; ctx.font='bold 14px Arial'; ctx.textAlign='center';
-  ctx.fillText('💎 SHOP - TELEGRAM STARS', W/2, 45);
+  ctx.fillText(t('shop_title'), W/2, 45);
 
   const items = [
-    {emoji:'🐭', name:'+3 Vite', price:25, id:'lives'},
-    {emoji:'🛡️', name:'Scudo', price:50, id:'shield'},
-    {emoji:'💎', name:'Supporter', price:100, id:'supporter'}
+    {emoji:'🐭', nameKey:'item_lives', price:25, id:'lives'},
+    {emoji:'🛡️', nameKey:'item_shield', price:50, id:'shield'},
+    {emoji:'💎', nameKey:'item_supporter', price:100, id:'supporter'}
   ];
 
   items.forEach((item, idx)=>{
@@ -2751,17 +2759,17 @@ function drawShop(){
     ctx.fillStyle='#fff'; ctx.font='22px Arial'; ctx.textAlign='left';
     ctx.fillText(item.emoji, 35, y+35);
     ctx.fillStyle='#FFD700'; ctx.font='bold 12px Arial';
-    ctx.fillText(item.name, 75, y+28);
+    ctx.fillText(t(item.nameKey), 75, y+28);
     ctx.fillStyle='#aaa'; ctx.font='11px Arial';
     ctx.fillText(`${item.price} ⭐`, 75, y+45);
     ctx.fillStyle='#0F0'; ctx.fillRect(W-90, y+15, 70, 30);
     ctx.fillStyle='#000'; ctx.font='bold 11px Arial'; ctx.textAlign='center';
-    ctx.fillText('COMPRA', W-55, y+36);
+    ctx.fillText(t('buy'), W-55, y+36);
   });
 
   ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-40, H-35, 80, 25);
   ctx.fillStyle='#fff'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
-  ctx.fillText('CHIUDI', W/2, H-18);
+  ctx.fillText(t('close'), W/2, H-18);
 }
 
 // ─── GAME OVER ───────────────────────────────────────────────────────────
