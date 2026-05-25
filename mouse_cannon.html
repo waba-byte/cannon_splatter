@@ -146,18 +146,20 @@ const CHARS = {
 };
 
 // ─── LEVEL GENERATION ────────────────────────────────────────────────────
-const KILL_TYPES   = ['TNT','SPIKE','KNIFE','CACTUS','ACID','SAW','BEAR','BIRD','PLANE','CHAINSAW'];
+const KILL_TYPES   = ['TNT','SPIKE','KNIFE','CACTUS','ACID','SAW','BEAR','BIRD','PLANE','CHAINSAW','LIGHTNING'];
 const BOUNCE_TYPES = ['SPRING','MUSHROOM','CLOUD','BALLOON'];
-const RADII = { TNT:28,SPIKE:38,KNIFE:24,CACTUS:32,ACID:60,SAW:34,BEAR:30,SPRING:20,MUSHROOM:26,CLOUD:44,BALLOON:48,BIRD:20,PLANE:30,CHAINSAW:34 };
+const RADII = { TNT:28,SPIKE:38,KNIFE:24,CACTUS:32,ACID:60,SAW:34,BEAR:30,SPRING:20,MUSHROOM:26,CLOUD:44,BALLOON:48,BIRD:20,PLANE:30,CHAINSAW:34,LIGHTNING:22 };
 
 function genLevel() {
   obstacles = [];
   let x = 1100;
   while(x < maxGeneratedX - 300) {
-    const isKill = Math.random() < 0.5;
-    const type = isKill
+    let isKill = Math.random() < 0.5;
+    let type = isKill
       ? KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)]
       : BOUNCE_TYPES[Math.floor(Math.random()*BOUNCE_TYPES.length)];
+    if(theme === 'rain' && type === 'LIGHTNING' && Math.random() > 0.7) type = 'LIGHTNING';
+    if(theme !== 'rain' && type === 'LIGHTNING') type = KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)];
 
     let cy;
     if(type === 'CLOUD')     cy = 80 + Math.random()*160;
@@ -165,6 +167,7 @@ function genLevel() {
     else if(type === 'BIRD')     cy = 80 + Math.random()*200;
     else if(type === 'PLANE')    cy = 10 + Math.random()*80;
     else if(type === 'CHAINSAW') cy = 30 + Math.random()*120;
+    else if(type === 'LIGHTNING') cy = Math.random()*120;
     else if(type === 'SAW' && Math.random()<0.5) cy = GY - 100 - Math.random()*120;
     else cy = GY;
 
@@ -187,10 +190,12 @@ function genMore(fromX) {
   let x = fromX;
   const endX = fromX + 2000;
   while(x < endX) {
-    const isKill = Math.random() < 0.5;
-    const type = isKill
+    let isKill = Math.random() < 0.5;
+    let type = isKill
       ? KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)]
       : BOUNCE_TYPES[Math.floor(Math.random()*BOUNCE_TYPES.length)];
+    if(theme === 'rain' && type === 'LIGHTNING' && Math.random() > 0.7) type = 'LIGHTNING';
+    if(theme !== 'rain' && type === 'LIGHTNING') type = KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)];
 
     let cy;
     if(type === 'CLOUD')     cy = 80 + Math.random()*160;
@@ -198,6 +203,7 @@ function genMore(fromX) {
     else if(type === 'BIRD')     cy = 80 + Math.random()*200;
     else if(type === 'PLANE')    cy = 10 + Math.random()*80;
     else if(type === 'CHAINSAW') cy = 30 + Math.random()*120;
+    else if(type === 'LIGHTNING') cy = Math.random()*120;
     else if(type === 'SAW' && Math.random()<0.5) cy = GY - 100 - Math.random()*120;
     else cy = GY;
 
@@ -224,22 +230,21 @@ for(let i=0;i<60;i++) debris.push({ wx:Math.random()*WORLD_W, y:20+Math.random()
 // ─── CAMERA ──────────────────────────────────────────────────────────────
 function updateCam() {
   if(mouse && mouse.alive){
-    cam.tx = mouse.wx - W*0.32;
-    cam.ty = Math.min(0, mouse.wy - H*0.62);
+    cam.tx = mouse.wx - W*0.5;
+    cam.ty = Math.min(0, mouse.wy - H*0.5);
   } else if(animState){
-    cam.tx = animState.wx - W*0.42;
-    cam.ty = Math.min(0, animState.wy - H*0.62);
+    cam.tx = animState.wx - W*0.5;
+    cam.ty = Math.min(0, animState.wy - H*0.5);
   } else {
     cam.tx = 0;
     cam.ty = 0;
   }
   cam.tx = Math.max(0, Math.min(WORLD_W - W, cam.tx));
   cam.ty = Math.max(-2000, Math.min(0, cam.ty));
-  // adaptive lerp: faster movement = faster camera follow
-  const lerpFactor = 0.06 + (mouse ? Math.abs(mouse.vx) * 0.004 : 0);
+  const lerpFactor = 0.10 + (mouse ? Math.abs(mouse.vx) * 0.008 : 0);
   cam.x += (cam.tx - cam.x) * lerpFactor;
   const _dy = cam.ty - cam.y;
-  cam.y += _dy * Math.min(0.20, 0.07 + Math.abs(_dy) * 0.00025);
+  cam.y += _dy * Math.min(0.25, 0.10 + Math.abs(_dy) * 0.0004);
 }
 function wx(worldX) { return worldX - cam.x; } // world→screen x
 
@@ -416,6 +421,7 @@ function drawObstacles() {
       case 'BIRD':      drawBird(o);      break;
       case 'PLANE':     drawPlane(o);     break;
       case 'CHAINSAW':  drawChainsaw(o);  break;
+      case 'LIGHTNING': drawLightning(o); break;
     }
     ctx.restore();
   });
@@ -495,6 +501,28 @@ function drawAcid(o) {
   }
   ctx.font='16px serif'; ctx.textAlign='center'; ctx.fillStyle='rgba(200,255,100,0.8)';
   ctx.fillText('☠',0,o.cy+7);
+}
+
+function drawLightning(o) {
+  const flash = Math.sin(T*0.3+o.cx*0.01)*0.5 + 0.5;
+  ctx.shadowColor='#FFFF00'; ctx.shadowBlur=20+flash*10;
+  ctx.strokeStyle='#FFFF00'; ctx.lineWidth=3;
+  ctx.beginPath();
+  let x=0, y=o.cy-o.r;
+  ctx.moveTo(x, y);
+  for(let i=0;i<5;i++) {
+    x += (Math.random()-0.5)*20;
+    y += 10 + Math.random()*6;
+    ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  if(flash>0.7) {
+    ctx.globalAlpha = (flash-0.7)*3;
+    ctx.fillStyle='rgba(255,255,150,0.8)';
+    ctx.fillRect(-o.r, o.cy-o.r-2, o.r*2, 4);
+    ctx.globalAlpha=1;
+  }
+  ctx.shadowBlur=0;
 }
 
 function drawSaw(o) {
@@ -897,6 +925,7 @@ const DEATHS={
   BIRD:     {label:'🐦 BECCATO!',     color:'#90CAF9',pts:180},
   PLANE:    {label:'✈️ ABBATTUTO!',   color:'#B0BEC5',pts:220},
   CHAINSAW: {label:'⛓️ DILANIATO!',   color:'#FF1744',pts:300},
+  LIGHTNING:{label:'⚡ FULMINATO!',   color:'#FFFF00',pts:280},
   STOP:     {label:'😵 FERMATO!',     color:'#888888',pts:0},
 };
 
@@ -975,6 +1004,11 @@ function killMouse(m, type) {
       burst(m.wx,m.wy,'#CC0000',38,10);burst(m.wx,m.wy,'#FF1744',18,6);
       chunks(m.wx,m.wy,'#9E9E9E',20);chunks(m.wx,m.wy,'#CC0000',16);
       ring(m.wx,m.wy,'#FF0000',8,5); break;
+    case 'LIGHTNING':
+      sfxTNT();
+      burst(m.wx,m.wy,'#FFFF00',48,14);burst(m.wx,m.wy,'#FFF9C4',30,10);
+      chunks(m.wx,m.wy,'#9E9E9E',16);chunks(m.wx,m.wy,'#FF6F00',12);
+      ring(m.wx,m.wy,'#FFFF00',14,8);ring(m.wx,m.wy,'#FFC107',8,12); break;
   }
 }
 
@@ -1028,9 +1062,12 @@ function addDeathPose(type, wx, wy, mvx, mvy) {
           rot:Math.random()*Math.PI*2, rs:(Math.random()-0.5)*0.3, timer:200, maxTimer:200});
       });
       break;
-    case 'CHAINSAW': // riusa morte sega
+    case 'CHAINSAW':
       deathPoses.push({type:'SAW_TOP', wx, wy, vx:mvx*0.15+0.5, vy:-3.5-Math.hypot(mvx,mvy)*0.08, rot:0, rs:-0.13, timer:220, maxTimer:220});
       deathPoses.push({type:'SAW_BOT', wx, wy, vx:mvx*0.15+0.5, vy:1.5+Math.hypot(mvx,mvy)*0.04, rot:0, rs:0.11, timer:220, maxTimer:220});
+      break;
+    case 'LIGHTNING':
+      deathPoses.push({type:'LIGHTNING_POSE', wx, wy, timer:200, maxTimer:200});
       break;
   }
 }
@@ -1308,6 +1345,22 @@ function drawDeathPoses() {
         ctx.restore();
         break;
       }
+
+      case 'LIGHTNING_POSE': {
+        const prog = 1 - d.timer/d.maxTimer;
+        const flash = Math.sin(T*0.4+prog*Math.PI*2)*0.5 + 0.5;
+        ctx.save(); ctx.translate(sx, d.wy);
+        ctx.globalAlpha = Math.max(0, 1 - prog*0.8);
+        ctx.fillStyle='#FFF9C4'; ctx.shadowColor='#FFFF00'; ctx.shadowBlur=20;
+        ctx.beginPath(); ctx.ellipse(0,0,20,15,0,0,Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle='#666'; ctx.beginPath(); ctx.arc(18,-1,12,0,Math.PI*2); ctx.fill();
+        xEyes(22,-5); tongue(28,6);
+        if(flash>0.6) ctx.fillStyle='#FFFF00'; else ctx.fillStyle='rgba(80,80,80,0.9)';
+        ctx.beginPath(); ctx.ellipse(0,8,23,4,0,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+        break;
+      }
     }
     ctx.restore();
   });
@@ -1347,6 +1400,7 @@ function drawAnimOverlay(){
       case 'BIRD':     _animBird(sx,sy,p);  break;
       case 'PLANE':    _animTNT(sx,sy,p);   break;
       case 'CHAINSAW': _animSaw(sx,sy,p);   break;
+      case 'LIGHTNING': _animTNT(sx,sy,p);  break;
     }
   }
   ctx.restore();
@@ -1919,15 +1973,15 @@ function spawnMouse(){
 
 function updateMouse(m){
   if(!m||!m.alive) return;
-  // ── MORTE LENTA ACIDO (2 secondi) ──────────────────────────────────────
   if(m.inAcid > 0){
     m.inAcid--;
     m.trail.push({wx:m.wx,wy:m.wy});
     if(m.trail.length>18) m.trail.shift();
-    m.vx *= 0.84;                      // rallenta orizzontalmente
-    m.vy = m.vy * 0.68 + 1.6;         // affonda lentamente nell'acido
+    m.vx *= 0.84;
+    m.vy = m.vy * 0.68 + 1.6;
     m.wx += m.vx;
     m.wy += m.vy;
+    m.wy = Math.min(m.wy, GY - 8);
     if(m.wx > m.maxDist) m.maxDist = m.wx;
     if(m.inAcid === 0){ killMouse(m,'ACID'); }
     return;
@@ -2677,20 +2731,20 @@ function loop(){
     if(mouse) updateMouse(mouse);
   }
 
-  // infinite distance: generate more obstacles as player advances
   if(mouse && mouse.alive && mouse.wx > maxGeneratedX - 1000) {
     genMore(maxGeneratedX);
   }
+  obstacles = obstacles.filter(o => o.cx > cam.x - 500);
 
   // animazione avanza sempre
   if(animState){
     // Yahoo! esattamente quando inizia la fase vittoria (78%)
     if(animState.phase==='safe' && animState.t===Math.floor(animState.dur*0.78)) sfxYahoo();
     animState.t++;
-    // during death animation, apply gravity so falling from sky obstacles
     if(animState.phase === 'death') {
-      animState.mvy = (animState.mvy || 0) + 0.10;
+      animState.mvy = (animState.mvy || 0) + 0.35;
       animState.wy += animState.mvy;
+      if(animState.wy > GY - 20) animState.wy = GY - 20;
     }
     if(animState.t >= animState.dur){
       // fine animazione: aggiungi cadavere persistente e pulisci
