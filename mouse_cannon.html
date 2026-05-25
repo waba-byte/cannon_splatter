@@ -81,7 +81,8 @@ const STRINGS = {
     distance: 'DISTANZA', night: 'NOTTE', day: 'GIORNO', sunset: 'TRAMONTO',
     rain: 'PIOGGIA', snow: 'NEVE', close: 'CHIUDI', buy: 'ACQUISTA', stars: 'STELLE',
     add_lives: '+3 VITE', shield: 'SCUDO', cosmetics: 'COSMETICS', supporter: 'SUPPORTER',
-    mouse: 'TOPO', cat: 'GATTINO', monkey: 'SCIMMIA', pavel: 'PAVEL'
+    mouse: 'TOPO', cat: 'GATTINO', monkey: 'SCIMMIA', pavel: 'PAVEL',
+    enter_name: 'INSERISCI NOME', enter_name_q: 'Come vuoi essere chiamato?', confirm: 'CONFERMA'
   },
   en: {
     fire: 'HOLD', restart: 'REPLAY', best: 'BEST', kills: 'KILL', score: 'PTS',
@@ -91,7 +92,8 @@ const STRINGS = {
     distance: 'DISTANCE', night: 'NIGHT', day: 'DAY', sunset: 'SUNSET',
     rain: 'RAIN', snow: 'SNOW', close: 'CLOSE', buy: 'BUY', stars: 'STARS',
     add_lives: '+3 LIVES', shield: 'SHIELD', cosmetics: 'COSMETICS', supporter: 'SUPPORTER',
-    mouse: 'MOUSE', cat: 'CAT', monkey: 'MONKEY', pavel: 'PAVEL'
+    mouse: 'MOUSE', cat: 'CAT', monkey: 'MONKEY', pavel: 'PAVEL',
+    enter_name: 'ENTER NAME', enter_name_q: 'What is your name?', confirm: 'CONFIRM'
   },
   ru: {
     fire: 'ДЕРЖИ', restart: 'ЗАНОВО', best: 'РЕКОРД', kills: 'УБИЙ', score: 'ОЧКИ',
@@ -101,7 +103,8 @@ const STRINGS = {
     distance: 'РАССТОЯНИЕ', night: 'НОЧЬ', day: 'ДЕНЬ', sunset: 'ЗАКАТ',
     rain: 'ДОЖДЬ', snow: 'СНЕГ', close: 'ЗАКРЫТЬ', buy: 'КУПИТЬ', stars: 'ЗВЕЗДЫ',
     add_lives: '+3 ЖИЗНИ', shield: 'ЩИТ', cosmetics: 'СKINS', supporter: 'СТОРОННИК',
-    mouse: 'МЫШЬ', cat: 'КОШКА', monkey: 'ОБЕЗЬЯНА', pavel: 'ПАВЕЛ'
+    mouse: 'МЫШЬ', cat: 'КОШКА', monkey: 'ОБЕЗЬЯНА', pavel: 'ПАВЕЛ',
+    enter_name: 'ВВЕДИТЕ ИМЯ', enter_name_q: 'Как вас зовут?', confirm: 'ПОДТВЕРДИТЬ'
   }
 };
 let lang = localStorage.getItem('lang') || 'it';
@@ -112,8 +115,10 @@ let sfxEnabled = JSON.parse(localStorage.getItem('sfxEnabled') ?? 'true');
 let musicVol = parseInt(localStorage.getItem('musicVol') ?? '70');
 let theme = localStorage.getItem('theme') || 'night';
 let selectedChar = localStorage.getItem('selectedChar') || 'mouse';
+let playerName = localStorage.getItem('playerName') || '';
+let playerNameScreenOpen = !playerName;  // show name screen if no name saved
+let charSelectOpen = !playerNameScreenOpen;  // only show char select after name
 let settingsOpen = false;
-let charSelectOpen = true;  // open character select at start
 let showLeaderboard = false;
 let showShop = false;
 let hasShield = JSON.parse(localStorage.getItem('hasShield') ?? 'false');
@@ -2602,6 +2607,33 @@ function drawSettings(){
 }
 
 // ─── CHARACTER SELECT ─────────────────────────────────────────────────────
+// ─── NAME INPUT SCREEN ───────────────────────────────────────────────────
+function drawNameInputScreen(){
+  if(!playerNameScreenOpen) return;
+  ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#222'; ctx.fillRect(W/2-140,H/2-120,280,240);
+  ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(W/2-140,H/2-120,280,240);
+  ctx.fillStyle='#FFD700'; ctx.font='bold 20px Arial'; ctx.textAlign='center';
+  ctx.fillText('👤 ' + t('enter_name'), W/2, H/2-90);
+  ctx.fillStyle='#ccc'; ctx.font='12px Arial';
+  ctx.fillText(t('enter_name_q'), W/2, H/2-70);
+
+  // input box background
+  ctx.fillStyle='#1a1a1a'; ctx.fillRect(W/2-110, H/2-40, 220, 35);
+  ctx.strokeStyle='#FFD700'; ctx.lineWidth=1; ctx.strokeRect(W/2-110, H/2-40, 220, 35);
+
+  // show current input text
+  ctx.fillStyle='#fff'; ctx.font='16px Arial'; ctx.textAlign='left';
+  const displayName = playerName || 'Scrivi qui...';
+  ctx.fillStyle = playerName ? '#fff' : '#888';
+  ctx.fillText(displayName, W/2-100, H/2-12);
+
+  // confirm button
+  ctx.fillStyle='#3fb950'; ctx.fillRect(W/2-60, H/2+40, 120, 30);
+  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center';
+  ctx.fillText(t('confirm'), W/2, H/2+60);
+}
+
 function drawCharSelect(){
   if(!charSelectOpen) return;
   ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,0,W,H);
@@ -2719,16 +2751,38 @@ document.addEventListener('keydown',e=>{
     if(e.code==='ArrowDown'||e.code==='ArrowRight'){e.preventDefault();angle=Math.min(-5,angle+2);}
   }
 });
+document.addEventListener('keydown',e=>{
+  // Handle name input when name screen is open
+  if(playerNameScreenOpen) {
+    if(e.code === 'Enter') {
+      e.preventDefault();
+      if(playerName.trim()) {
+        playerNameScreenOpen = false;
+        charSelectOpen = true;
+        localStorage.setItem('playerName', playerName);
+        console.log('Player name saved:', playerName);
+      }
+    } else if(e.code === 'Backspace') {
+      e.preventDefault();
+      playerName = playerName.slice(0, -1);
+    } else if(e.key && e.key.length === 1 && playerName.length < 20) {
+      e.preventDefault();
+      playerName += e.key;
+    }
+  }
+  keysHeld[e.code]=true;
+});
+
 document.addEventListener('keyup',e=>{
   keysHeld[e.code]=false;
   if(e.code==='Space')shoot();
 });
 canvas.addEventListener('mousedown',e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
+  if(playerNameScreenOpen || charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
   initAudio();if(e.button===0&&!gameOver)startCharge();
 });
 canvas.addEventListener('mouseup',e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
+  if(playerNameScreenOpen || charSelectOpen || settingsOpen || showLeaderboard || showShop) { e.preventDefault(); e.stopPropagation(); return; }
   if(e.button===0)shoot();
 });
 
@@ -2830,6 +2884,21 @@ document.addEventListener('click',e=>{
     return;
   }
 
+  // Name input screen clicks
+  if(playerNameScreenOpen) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Confirm button: W/2-60, H/2+40, 120x30
+    if(canvasX > W/2-60 && canvasX < W/2+60 && canvasY > H/2+40 && canvasY < H/2+70) {
+      if(playerName.trim()) {
+        playerNameScreenOpen = false;
+        charSelectOpen = true;
+        console.log('Player name set:', playerName);
+      }
+    }
+    return;
+  }
+
   // Character select clicks
   if(!gameOver && !charSelectOpen) {
     // Open char select if no game running
@@ -2860,13 +2929,13 @@ document.addEventListener('click',e=>{
 
 // Block touch events during UI overlays
 document.addEventListener('touchstart', e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
+  if(playerNameScreenOpen || charSelectOpen || settingsOpen || showLeaderboard || showShop) {
     e.preventDefault();
     e.stopPropagation();
   }
 }, {passive:false});
 document.addEventListener('touchend', e=>{
-  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
+  if(playerNameScreenOpen || charSelectOpen || settingsOpen || showLeaderboard || showShop) {
     e.preventDefault();
     e.stopPropagation();
   }
@@ -3178,6 +3247,7 @@ function loop(){
     ctx.restore();
   }
   drawSettings();
+  drawNameInputScreen();
   drawCharSelect();
   drawLeaderboard();
   drawShop();
