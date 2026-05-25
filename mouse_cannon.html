@@ -2155,8 +2155,14 @@ document.addEventListener('keyup',e=>{
   keysHeld[e.code]=false;
   if(e.code==='Space')shoot();
 });
-canvas.addEventListener('mousedown',e=>{initAudio();if(e.button===0&&!gameOver)startCharge();});
-canvas.addEventListener('mouseup',e=>{if(e.button===0)shoot();});
+canvas.addEventListener('mousedown',e=>{
+  if(charSelectOpen || settingsOpen) { e.preventDefault(); e.stopPropagation(); return; }
+  initAudio();if(e.button===0&&!gameOver)startCharge();
+});
+canvas.addEventListener('mouseup',e=>{
+  if(charSelectOpen || settingsOpen) { e.preventDefault(); e.stopPropagation(); return; }
+  if(e.button===0)shoot();
+});
 
 // click handlers for UI buttons
 document.addEventListener('click',e=>{
@@ -2594,10 +2600,14 @@ loop();
 
   // canvas touch → spara
   canvas.addEventListener('touchstart', e=>{
+    if(charSelectOpen || settingsOpen) { e.preventDefault(); e.stopPropagation(); return; }
     e.preventDefault(); initAudio();
     if(!gameOver) startCharge();
   }, {passive:false});
-  canvas.addEventListener('touchend', e=>{ e.preventDefault(); shoot(); }, {passive:false});
+  canvas.addEventListener('touchend', e=>{
+    if(charSelectOpen || settingsOpen) { e.preventDefault(); e.stopPropagation(); return; }
+    e.preventDefault(); shoot();
+  }, {passive:false});
 })();
 
 // ─── SPLASH SCREEN ────────────────────────────────────────────────────────
