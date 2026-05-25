@@ -857,7 +857,6 @@ function drawMouse(m) {
   ctx.beginPath(); ctx.moveTo(-17,3); ctx.quadraticCurveTo(-30,-9+tw,-40,2+tw*0.5); ctx.stroke();
 
   ctx.restore();
-  ctx.restore();
 
   if(m.inAcid > 0){
     const prog = 1 - m.inAcid/120;
@@ -882,6 +881,8 @@ function drawMouse(m) {
     ctx.globalAlpha=1;
     ctx.restore();
   }
+
+  ctx.restore();
 }
 
 // ── CAT (🐱) ────────────────────────────────────────────────────────────
@@ -974,19 +975,15 @@ function drawCat(m) {
   ctx.beginPath(); ctx.moveTo(-17,3); ctx.quadraticCurveTo(-30,-9+tw,-40,2+tw*0.5); ctx.stroke();
 
   ctx.restore();
-  ctx.restore();
 
-  // ── ACID dissolving overlay ────────────────────────────────────────────
   if(m.inAcid > 0){
-    const prog = 1 - m.inAcid/120; // 0→1 mentre muore
+    const prog = 1 - m.inAcid/120;
     ctx.save();
-    // blob verde che cresce attorno al corpo
     ctx.shadowColor='#76FF03'; ctx.shadowBlur=22+prog*12;
     ctx.globalAlpha = 0.25 + prog*0.55;
     ctx.fillStyle=`rgba(40,${Math.floor(200+55*prog)},0,0.7)`;
     ctx.beginPath(); ctx.ellipse(sx,m.wy, 22+prog*20, 15+prog*14, 0, 0, Math.PI*2); ctx.fill();
     ctx.shadowBlur=0;
-    // bollicine che salgono
     for(let i=0;i<6;i++){
       const bph=((T*2+i*20)%120)/120;
       ctx.fillStyle=`rgba(150,255,50,${0.75*(1-bph)})`;
@@ -994,7 +991,6 @@ function drawCat(m) {
       ctx.fillStyle=`rgba(220,255,180,${0.4*(1-bph)})`;
       ctx.beginPath(); ctx.arc(sx+(i-2.5)*13-2, m.wy-bph*60-3, 1.2, 0, Math.PI*2); ctx.fill();
     }
-    // testo che appare verso la fine
     if(prog>0.6){
       ctx.globalAlpha=(prog-0.6)/0.4;
       ctx.font='bold 14px Arial Black'; ctx.textAlign='center';
@@ -1005,6 +1001,8 @@ function drawCat(m) {
     ctx.globalAlpha=1;
     ctx.restore();
   }
+
+  ctx.restore();
 }
 
 // ── MONKEY (🐒) ──────────────────────────────────────────────────────────
@@ -1096,7 +1094,6 @@ function drawMonkey(m) {
   ctx.beginPath(); ctx.moveTo(-15,5); ctx.quadraticCurveTo(-28,-5+tw,-42,5+tw*0.5); ctx.stroke();
 
   ctx.restore();
-  ctx.restore();
 
   if(m.inAcid > 0){
     const prog = 1 - m.inAcid/120;
@@ -1121,6 +1118,8 @@ function drawMonkey(m) {
     ctx.globalAlpha=1;
     ctx.restore();
   }
+
+  ctx.restore();
 }
 
 // ── PAVEL (👤) ───────────────────────────────────────────────────────────
@@ -1206,7 +1205,6 @@ function drawPavel(m) {
   ctx.beginPath(); ctx.moveTo(-15,3); ctx.quadraticCurveTo(-25,-8+tw,-36,3+tw*0.4); ctx.stroke();
 
   ctx.restore();
-  ctx.restore();
 
   if(m.inAcid > 0){
     const prog = 1 - m.inAcid/120;
@@ -1231,6 +1229,8 @@ function drawPavel(m) {
     ctx.globalAlpha=1;
     ctx.restore();
   }
+
+  ctx.restore();
 }
 
 // ─── CANNON (world space) ─────────────────────────────────────────────────
