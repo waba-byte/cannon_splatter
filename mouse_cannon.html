@@ -2201,14 +2201,18 @@ document.addEventListener('click',e=>{
 
   if(charSelectOpen) {
     const chars = ['mouse','cat','monkey','pavel'];
+    let clickedChar = false;
     chars.forEach((c,i)=>{
       const charX = W/2-120+i*60;
       // hitbox matches drawn rect: x-20 to x+30, H/2-80 to H/2-20
       if(canvasX > charX-20 && canvasX < charX+30 && canvasY > H/2-80 && canvasY < H/2-20) {
         selectedChar = c; localStorage.setItem('selectedChar', c);
         console.log('Selected:', c);
+        clickedChar = true;
       }
     });
+
+    if(clickedChar) return; // prevent further click handling after char selection
 
     // Play button hitbox matches drawn rect: W/2-50 to W/2+50, H/2+120 to H/2+145
     if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+120 && canvasY < H/2+145) {
