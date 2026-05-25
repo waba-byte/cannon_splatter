@@ -82,7 +82,12 @@ const STRINGS = {
     rain: 'PIOGGIA', snow: 'NEVE', close: 'CHIUDI', buy: 'ACQUISTA', stars: 'STELLE',
     add_lives: '+3 VITE', shield: 'SCUDO', cosmetics: 'COSMETICS', supporter: 'SUPPORTER',
     mouse: 'TOPO', cat: 'GATTINO', monkey: 'SCIMMIA', pavel: 'PAVEL',
-    enter_name: 'INSERISCI NOME', enter_name_q: 'Come vuoi essere chiamato?', confirm: 'CONFERMA'
+    enter_name: 'INSERISCI NOME', enter_name_q: 'Come vuoi essere chiamato?', confirm: 'CONFERMA',
+    enter_name_placeholder: 'Scrivi qui...', power: 'POTENZA', angle: 'ANGOLO',
+    grade_s: 'S★ SUPER TOPO', grade_a: 'A - GRAN VOLO', grade_b: 'B - DISCRETO', grade_c: 'C - NEMMENO CI PROVI', grade_d: 'D - UN DISASTRO',
+    grade_label: 'GRADO:', dist_record: 'Distanza record:', leaderboard_title: '🏆 CLASSIFICA TOP 10',
+    col_rank: 'RANK', col_name: 'NOME', col_dist: 'DISTANZA', col_score: 'SCORE',
+    replay_hint_kb: '[ R ] per rigiocare', replay_hint_touch: 'Tocca per rigiocare'
   },
   en: {
     fire: 'HOLD', restart: 'REPLAY', best: 'BEST', kills: 'KILL', score: 'PTS',
@@ -93,7 +98,12 @@ const STRINGS = {
     rain: 'RAIN', snow: 'SNOW', close: 'CLOSE', buy: 'BUY', stars: 'STARS',
     add_lives: '+3 LIVES', shield: 'SHIELD', cosmetics: 'COSMETICS', supporter: 'SUPPORTER',
     mouse: 'MOUSE', cat: 'CAT', monkey: 'MONKEY', pavel: 'PAVEL',
-    enter_name: 'ENTER NAME', enter_name_q: 'What is your name?', confirm: 'CONFIRM'
+    enter_name: 'ENTER NAME', enter_name_q: 'What is your name?', confirm: 'CONFIRM',
+    enter_name_placeholder: 'Type here...', power: 'POWER', angle: 'ANGLE',
+    grade_s: 'S★ SUPER MOUSE', grade_a: 'A - GREAT FLIGHT', grade_b: 'B - DECENT', grade_c: 'C - NOT EVEN TRYING', grade_d: 'D - A DISASTER',
+    grade_label: 'GRADE:', dist_record: 'Best distance:', leaderboard_title: '🏆 TOP 10 LEADERBOARD',
+    col_rank: 'RANK', col_name: 'NAME', col_dist: 'DISTANCE', col_score: 'SCORE',
+    replay_hint_kb: '[ R ] to replay', replay_hint_touch: 'Tap to replay'
   },
   ru: {
     fire: 'ДЕРЖИ', restart: 'ЗАНОВО', best: 'РЕКОРД', kills: 'УБИЙ', score: 'ОЧКИ',
@@ -104,7 +114,12 @@ const STRINGS = {
     rain: 'ДОЖДЬ', snow: 'СНЕГ', close: 'ЗАКРЫТЬ', buy: 'КУПИТЬ', stars: 'ЗВЕЗДЫ',
     add_lives: '+3 ЖИЗНИ', shield: 'ЩИТ', cosmetics: 'СKINS', supporter: 'СТОРОННИК',
     mouse: 'МЫШЬ', cat: 'КОШКА', monkey: 'ОБЕЗЬЯНА', pavel: 'ПАВЕЛ',
-    enter_name: 'ВВЕДИТЕ ИМЯ', enter_name_q: 'Как вас зовут?', confirm: 'ПОДТВЕРДИТЬ'
+    enter_name: 'ВВЕДИТЕ ИМЯ', enter_name_q: 'Как вас зовут?', confirm: 'ПОДТВЕРДИТЬ',
+    enter_name_placeholder: 'Пишите тут...', power: 'МОЩЬ', angle: 'УГОЛ',
+    grade_s: 'S★ СУПЕР МЫШЬ', grade_a: 'A - ОТЛИЧНЫЙ ПОЛЕТ', grade_b: 'B - ХОРОШО', grade_c: 'C - ПЛОХО ДАЖЕ', grade_d: 'D - КАТАСТРОФА',
+    grade_label: 'УРОВЕНЬ:', dist_record: 'Лучшая дистанция:', leaderboard_title: '🏆 ТОП 10',
+    col_rank: 'РАНГ', col_name: 'ИМЯ', col_dist: 'ДИСТАНЦИЯ', col_score: 'ОЧКИ',
+    replay_hint_kb: '[ R ] для переигровки', replay_hint_touch: 'Нажмите для переигровки'
   }
 };
 let lang = localStorage.getItem('lang') || 'it';
@@ -144,51 +159,72 @@ function addScore(dist, kills, score, charUsed) {
 
 // ─── CHARACTERS ────────────────────────────────────────────────────────────
 const CHARS = {
-  mouse:  { name: t('mouse'), emoji: '🐭' },
-  cat:    { name: t('cat'), emoji: '🐱' },
-  monkey: { name: t('monkey'), emoji: '🐒' },
-  pavel:  { name: t('pavel'), emoji: '👤' }
+  mouse:  { get name(){ return t('mouse'); }, emoji: '🐭' },
+  cat:    { get name(){ return t('cat'); }, emoji: '🐱' },
+  monkey: { get name(){ return t('monkey'); }, emoji: '🐒' },
+  pavel:  { get name(){ return t('pavel'); }, emoji: '👤' }
 };
 
 // ─── LEVEL GENERATION ────────────────────────────────────────────────────
 const KILL_TYPES   = ['TNT','SPIKE','KNIFE','CACTUS','ACID','SAW','BEAR','BIRD','PLANE','CHAINSAW','LIGHTNING'];
+const KILL_TYPES_INTRO = ['TNT','SPIKE','KNIFE','CACTUS','ACID','SAW','BEAR']; // simpler kills for first 300m
 const BOUNCE_TYPES = ['SPRING','MUSHROOM','CLOUD','BALLOON'];
 const RADII = { TNT:28,SPIKE:38,KNIFE:24,CACTUS:32,ACID:60,SAW:34,BEAR:30,SPRING:20,MUSHROOM:26,CLOUD:44,BALLOON:48,BIRD:20,PLANE:30,CHAINSAW:34,LIGHTNING:22 };
 
+// Helper: pick Y coordinate based on obstacle type
+function pickCy(type) {
+  if(type === 'CLOUD')     return 80 + Math.random()*160;
+  else if(type === 'BALLOON')  return 50 + Math.random()*200;
+  else if(type === 'BIRD')     return 80 + Math.random()*200;
+  else if(type === 'PLANE')    return 10 + Math.random()*80;
+  else if(type === 'CHAINSAW') return 30 + Math.random()*120;
+  else if(type === 'LIGHTNING') return Math.random()*120;
+  else if(type === 'SAW' && Math.random()<0.5) return GY - 100 - Math.random()*120;
+  else return GY;
+}
+
+// Helper: pick extra properties based on type (speed, chainsaw length)
+function pickExtra(type) {
+  const extra = {};
+  if(type==='BIRD')  extra._spd = 1.2 + Math.random()*0.9;
+  if(type==='PLANE') extra._spd = 2.2 + Math.random()*1.5;
+  if(type==='CHAINSAW') extra._chainLen = 140 + Math.floor(Math.random()*90);
+  return extra;
+}
+
 function genLevel() {
   obstacles = [];
-  let x = 1100;
+
+  // ─── FIRST 300m ZONE: 50/50 random bumpers vs kills ─────────────────────
+  const ZONE_START = 500;
+  const ZONE_END = CANNON_WX + 300 * METER;  // 80 + 3600 = 3680
+  let zx = ZONE_START;
+  let flipKill = Math.random() < 0.5;  // randomly decide which comes first
+  while(zx < ZONE_END) {
+    const isKill = flipKill;
+    flipKill = !flipKill;  // strict alternation = exactly 50/50
+    const type = isKill
+      ? KILL_TYPES_INTRO[Math.floor(Math.random()*KILL_TYPES_INTRO.length)]
+      : BOUNCE_TYPES[Math.floor(Math.random()*BOUNCE_TYPES.length)];
+    const cy = pickCy(type);
+    obstacles.push({ type, cx:zx, cy, r:RADII[type], _drift:0, ...pickExtra(type) });
+    zx += 180 + Math.random() * 200;  // 180-380px spacing
+  }
+
+  // ─── MAIN GENERATION: rest of level with full kill set ────────────────────
+  let x = ZONE_END + 100;
   while(x < maxGeneratedX - 300) {
     let isKill = Math.random() < 0.5;
     let type = isKill
       ? KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)]
       : BOUNCE_TYPES[Math.floor(Math.random()*BOUNCE_TYPES.length)];
-    if(theme === 'rain' && type === 'LIGHTNING' && Math.random() > 0.7) type = 'LIGHTNING';
+    if(theme === 'rain' && type !== 'LIGHTNING' && Math.random() > 0.7) type = 'LIGHTNING';
     if(theme !== 'rain' && type === 'LIGHTNING') type = KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)];
 
-    let cy;
-    if(type === 'CLOUD')     cy = 80 + Math.random()*160;
-    else if(type === 'BALLOON')  cy = 50 + Math.random()*200;
-    else if(type === 'BIRD')     cy = 80 + Math.random()*200;
-    else if(type === 'PLANE')    cy = 10 + Math.random()*80;
-    else if(type === 'CHAINSAW') cy = 30 + Math.random()*120;
-    else if(type === 'LIGHTNING') cy = Math.random()*120;
-    else if(type === 'SAW' && Math.random()<0.5) cy = GY - 100 - Math.random()*120;
-    else cy = GY;
-
-    const extra = {};
-    if(type==='BIRD')  extra._spd = 1.2 + Math.random()*0.9;
-    if(type==='PLANE') extra._spd = 2.2 + Math.random()*1.5;
-    if(type==='CHAINSAW') extra._chainLen = 140 + Math.floor(Math.random()*90);
-    obstacles.push({ type, cx:x, cy, r:RADII[type], _drift:0, ...extra });
+    const cy = pickCy(type);
+    obstacles.push({ type, cx:x, cy, r:RADII[type], _drift:0, ...pickExtra(type) });
     x += 130 + Math.random()*180;
   }
-
-  obstacles.unshift(
-    { type:'SPRING',   cx:1100, cy:GY,  r:20, _drift:0 },
-    { type:'CLOUD',    cx:1350, cy:150, r:44, _drift:0 },
-    { type:'MUSHROOM', cx:1600, cy:GY,  r:26, _drift:0 }
-  );
 }
 
 function genMore(fromX) {
@@ -199,24 +235,11 @@ function genMore(fromX) {
     let type = isKill
       ? KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)]
       : BOUNCE_TYPES[Math.floor(Math.random()*BOUNCE_TYPES.length)];
-    if(theme === 'rain' && type === 'LIGHTNING' && Math.random() > 0.7) type = 'LIGHTNING';
+    if(theme === 'rain' && type !== 'LIGHTNING' && Math.random() > 0.7) type = 'LIGHTNING';
     if(theme !== 'rain' && type === 'LIGHTNING') type = KILL_TYPES[Math.floor(Math.random()*KILL_TYPES.length)];
 
-    let cy;
-    if(type === 'CLOUD')     cy = 80 + Math.random()*160;
-    else if(type === 'BALLOON')  cy = 50 + Math.random()*200;
-    else if(type === 'BIRD')     cy = 80 + Math.random()*200;
-    else if(type === 'PLANE')    cy = 10 + Math.random()*80;
-    else if(type === 'CHAINSAW') cy = 30 + Math.random()*120;
-    else if(type === 'LIGHTNING') cy = Math.random()*120;
-    else if(type === 'SAW' && Math.random()<0.5) cy = GY - 100 - Math.random()*120;
-    else cy = GY;
-
-    const extra = {};
-    if(type==='BIRD')  extra._spd = 1.2 + Math.random()*0.9;
-    if(type==='PLANE') extra._spd = 2.2 + Math.random()*1.5;
-    if(type==='CHAINSAW') extra._chainLen = 140 + Math.floor(Math.random()*90);
-    obstacles.push({ type, cx:x, cy, r:RADII[type], _drift:0, ...extra });
+    const cy = pickCy(type);
+    obstacles.push({ type, cx:x, cy, r:RADII[type], _drift:0, ...pickExtra(type) });
     x += 130 + Math.random()*180;
   }
   maxGeneratedX = Math.max(maxGeneratedX, endX);
@@ -2483,7 +2506,7 @@ function drawHUD() {
   ctx.fillText(curDist+'m', W/2, 44);
   ctx.shadowBlur=0;
   ctx.font='13px Arial'; ctx.fillStyle='#888';
-  ctx.fillText('DISTANZA', W/2, 60);
+  ctx.fillText(t('distance'), W/2, 60);
 
   // SPEED
   if(mouse&&mouse.alive){
@@ -2494,9 +2517,9 @@ function drawHUD() {
 
   // BEST
   ctx.textAlign='right'; ctx.font='13px Arial'; ctx.fillStyle='#FFD700';
-  ctx.fillText(`⭐ BEST: ${bestDist}m`, W-10, 22);
+  ctx.fillText(`⭐ ${t('best')}: ${bestDist}m`, W-10, 22);
   ctx.fillStyle='#FF9999';
-  ctx.fillText(`💀 ${kills} kill  +${score}pt`, W-10, 42);
+  ctx.fillText(`💀 ${kills}  +${score}⭐`, W-10, 42);
 
   // MICE LEFT
   ctx.textAlign='left'; ctx.font='18px Arial'; ctx.fillStyle='#FF9999';
@@ -2511,7 +2534,7 @@ function drawHUD() {
     ctx.fillStyle=col; ctx.fillRect(W/2-78,H-34,156*power/100,18);
     ctx.strokeStyle='#555'; ctx.lineWidth=1; ctx.strokeRect(W/2-80,H-36,160,22);
     ctx.fillStyle='white'; ctx.font='bold 13px Arial'; ctx.textAlign='center';
-    ctx.fillText('POTENZA  '+pw+'%',W/2,H-21);
+    ctx.fillText(t('power')+'  '+pw+'%',W/2,H-21);
   }
 
   // ANGLE SELECTOR (visibile solo a topo fermo / prima del lancio)
@@ -2531,11 +2554,7 @@ function drawHUD() {
     ctx.fillText(deg+'°', cx, cy+10);
     ctx.shadowBlur=0;
     ctx.fillStyle='#888'; ctx.font='11px Arial';
-    ctx.fillText('ANGOLO', cx, cy+26);
-    // istruzioni tasti
-    const isTouchHint = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-    ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='12px Arial';
-    ctx.fillText(isTouchHint ? '▲▼ angolo   🔥 tieni+rilascia' : '↑↓ angolo   SPAZIO spara', cx, cy+42);
+    ctx.fillText(t('angle'), cx, cy+26);
   }
 
   // SHOP BUTTON
@@ -2624,7 +2643,7 @@ function drawNameInputScreen(){
 
   // show current input text
   ctx.fillStyle='#fff'; ctx.font='16px Arial'; ctx.textAlign='left';
-  const displayName = playerName || 'Scrivi qui...';
+  const displayName = playerName || t('enter_name_placeholder');
   ctx.fillStyle = playerName ? '#fff' : '#888';
   ctx.fillText(displayName, W/2-100, H/2-12);
 
@@ -2664,11 +2683,11 @@ function drawLeaderboard(){
   ctx.fillStyle='#222'; ctx.fillRect(10,20,W-20,H-40);
   ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(10,20,W-20,H-40);
   ctx.fillStyle='#FFD700'; ctx.font='bold 16px Arial'; ctx.textAlign='center';
-  ctx.fillText('🏆 CLASSIFICA TOP 10', W/2, 45);
+  ctx.fillText(t('leaderboard_title'), W/2, 45);
 
   const board = getLeaderboard();
   ctx.font='11px Arial'; ctx.fillStyle='#ccc'; ctx.textAlign='left';
-  ctx.fillText('RANK', 20, 65); ctx.fillText('NOME', 60, 65); ctx.fillText('DISTANZA', 180, 65); ctx.fillText('SCORE', 280, 65);
+  ctx.fillText(t('col_rank'), 20, 65); ctx.fillText(t('col_name'), 60, 65); ctx.fillText(t('col_dist'), 180, 65); ctx.fillText(t('col_score'), 280, 65);
 
   board.forEach((entry, idx)=>{
     const y = 85 + idx*25;
@@ -2681,7 +2700,7 @@ function drawLeaderboard(){
 
   ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-40, H-35, 80, 25);
   ctx.fillStyle='#fff'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
-  ctx.fillText('CHIUDI', W/2, H-18);
+  ctx.fillText(t('close'), W/2, H-18);
 }
 
 // ─── SHOP ────────────────────────────────────────────────────────────────
@@ -2725,17 +2744,17 @@ function drawGameOver(){
   ctx.textAlign='center';
   ctx.shadowColor='#FF0000'; ctx.shadowBlur=30;
   ctx.fillStyle='#FF0000'; ctx.font='bold 52px Arial Black';
-  ctx.fillText('💀 GAME OVER 💀',W/2,H/2-65);
+  ctx.fillText('💀 ' + t('game_over') + ' 💀',W/2,H/2-65);
   ctx.shadowBlur=0;
   ctx.fillStyle='white'; ctx.font='28px Arial';
-  ctx.fillText(`Distanza record: ${bestDist}m`,W/2,H/2-20);
+  ctx.fillText(`${t('dist_record')} ${bestDist}m`,W/2,H/2-20);
   ctx.fillStyle='#FFCC00'; ctx.font='22px Arial';
-  ctx.fillText(`Kill: ${kills}  |  Score: ${score}`,W/2,H/2+20);
-  const g=bestDist>=400?'S★ SUPER TOPO':bestDist>=250?'A - GRAN VOLO':bestDist>=150?'B - DISCRETO':bestDist>=80?'C - NEMMENO CI PROVI':'D - UN DISASTRO';
+  ctx.fillText(`💀 ${kills}  |  ⭐${score}`,W/2,H/2+20);
+  const g=bestDist>=400?t('grade_s'):bestDist>=250?t('grade_a'):bestDist>=150?t('grade_b'):bestDist>=80?t('grade_c'):t('grade_d');
   ctx.fillStyle='#FFEB3B'; ctx.font='bold 20px Arial';
-  ctx.fillText(`Grado: ${g}`,W/2,H/2+58);
+  ctx.fillText(`${t('grade_label')} ${g}`,W/2,H/2+58);
   ctx.fillStyle='#FF9999'; ctx.font='18px Arial';
-  ctx.fillText('[ R ] per rigiocare',W/2,H/2+100);
+  ctx.fillText(t('replay_hint_kb'),W/2,H/2+100);
 }
 
 // ─── INPUT ───────────────────────────────────────────────────────────────
