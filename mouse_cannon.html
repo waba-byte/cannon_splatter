@@ -2160,6 +2160,12 @@ canvas.addEventListener('mouseup',e=>{if(e.button===0)shoot();});
 
 // click handlers for UI buttons
 document.addEventListener('click',e=>{
+  // Always block clicks during character select or settings
+  if(charSelectOpen || settingsOpen) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left, y = e.clientY - rect.top;
   const scale = rect.width / W;
@@ -2168,10 +2174,14 @@ document.addEventListener('click',e=>{
   // Settings button (⚙️)
   if(canvasX > W-45 && canvasX < W-8 && canvasY > 8 && canvasY < 33) {
     settingsOpen = !settingsOpen;
+    e.preventDefault();
+    e.stopPropagation();
   }
 
   // If settings open, handle settings clicks
   if(settingsOpen) {
+    e.preventDefault();
+    e.stopPropagation();
     // Language buttons
     const langs = ['it','en','ru'];
     langs.forEach((l,i)=>{
@@ -2191,6 +2201,7 @@ document.addEventListener('click',e=>{
     if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+140 && canvasY < H/2+165) {
       settingsOpen = false;
     }
+    return;
   }
 
   // Character select clicks
@@ -2200,27 +2211,40 @@ document.addEventListener('click',e=>{
   }
 
   if(charSelectOpen) {
+    e.preventDefault();
+    e.stopPropagation();
     const chars = ['mouse','cat','monkey','pavel'];
-    let clickedChar = false;
     chars.forEach((c,i)=>{
       const charX = W/2-120+i*60;
       // hitbox matches drawn rect: x-20 to x+30, H/2-80 to H/2-20
       if(canvasX > charX-20 && canvasX < charX+30 && canvasY > H/2-80 && canvasY < H/2-20) {
         selectedChar = c; localStorage.setItem('selectedChar', c);
         console.log('Selected:', c);
-        clickedChar = true;
       }
     });
-
-    if(clickedChar) return; // prevent further click handling after char selection
 
     // Play button hitbox matches drawn rect: W/2-50 to W/2+50, H/2+120 to H/2+145
     if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+120 && canvasY < H/2+145) {
       charSelectOpen = false;
       console.log('Closing char select, starting game');
     }
+    return;
   }
 });
+
+// Block touch events during character select or settings
+document.addEventListener('touchstart', e=>{
+  if(charSelectOpen || settingsOpen) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, {passive:false});
+document.addEventListener('touchend', e=>{
+  if(charSelectOpen || settingsOpen) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}, {passive:false});
 
 function startCharge(){
   if(mLeft<=0||animState)return;
