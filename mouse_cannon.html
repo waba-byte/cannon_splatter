@@ -2645,7 +2645,6 @@ function drawSettings(){
 function drawNameInputScreen(){
   if(!playerNameScreenOpen) {
     namePromptShown = false;
-    nameInput.style.display = 'none';
     return;
   }
 
@@ -2959,13 +2958,13 @@ document.addEventListener('click',e=>{
 
 // Block touch events during UI overlays
 document.addEventListener('touchstart', e=>{
-  if(playerNameScreenOpen || charSelectOpen || settingsOpen || showLeaderboard || showShop) {
+  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
     e.preventDefault();
     e.stopPropagation();
   }
 }, {passive:false});
 document.addEventListener('touchend', e=>{
-  if(playerNameScreenOpen || charSelectOpen || settingsOpen || showLeaderboard || showShop) {
+  if(charSelectOpen || settingsOpen || showLeaderboard || showShop) {
     e.preventDefault();
     e.stopPropagation();
   }
