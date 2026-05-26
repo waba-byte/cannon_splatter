@@ -3358,13 +3358,6 @@ loop();
   // ─── UI Overlay Touch Handlers ───────────────────────────────────────────
   // Handle charSelect, settings, leaderboard, shop touches
   canvas.addEventListener('touchstart', e=>{
-    if(!charSelectOpen && !settingsOpen && !showLeaderboard && !showShop) {
-      // Gameplay mode - fire
-      e.preventDefault(); initAudio();
-      if(!gameOver) startCharge();
-      return;
-    }
-
     e.preventDefault();
     e.stopPropagation();
 
@@ -3377,7 +3370,7 @@ loop();
     const canvasX = x / scale;
     const canvasY = y / scale;
 
-    // Top-right HUD buttons (shop, leaderboard, settings)
+    // Top-right HUD buttons - check FIRST before gameplay mode!
     // Shop button (💰) - W-135 to W-98, 8 to 33
     if(canvasX > W-135 && canvasX < W-98 && canvasY > 8 && canvasY < 33) {
       showShop = !showShop;
@@ -3393,6 +3386,13 @@ loop();
     // Settings button (⚙️) - W-45 to W-8, 8 to 33
     if(canvasX > W-45 && canvasX < W-8 && canvasY > 8 && canvasY < 33) {
       settingsOpen = !settingsOpen;
+      return;
+    }
+
+    // Gameplay mode (if no UI overlays are open and not clicking top buttons)
+    if(!charSelectOpen && !settingsOpen && !showLeaderboard && !showShop) {
+      initAudio();
+      if(!gameOver) startCharge();
       return;
     }
 
