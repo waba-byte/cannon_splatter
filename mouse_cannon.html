@@ -3377,6 +3377,25 @@ loop();
     const canvasX = x / scale;
     const canvasY = y / scale;
 
+    // Top-right HUD buttons (shop, leaderboard, settings)
+    // Shop button (💰) - W-135 to W-98, 8 to 33
+    if(canvasX > W-135 && canvasX < W-98 && canvasY > 8 && canvasY < 33) {
+      showShop = !showShop;
+      return;
+    }
+
+    // Leaderboard button (🏆) - W-90 to W-53, 8 to 33
+    if(canvasX > W-90 && canvasX < W-53 && canvasY > 8 && canvasY < 33) {
+      showLeaderboard = !showLeaderboard;
+      return;
+    }
+
+    // Settings button (⚙️) - W-45 to W-8, 8 to 33
+    if(canvasX > W-45 && canvasX < W-8 && canvasY > 8 && canvasY < 33) {
+      settingsOpen = !settingsOpen;
+      return;
+    }
+
     // Simulate click handler logic for UI overlays
     if(playerNameScreenOpen) {
       // Confirm button: W/2-50 to W/2+50, H/2+60 to H/2+90
