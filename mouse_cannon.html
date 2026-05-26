@@ -2648,8 +2648,8 @@ function drawSettings(){
   ctx.fillStyle = sfxEnabled ? '#76FF03' : '#666'; ctx.fillRect(...sfxRect);
   ctx.fillStyle = sfxEnabled ? '#000' : '#fff'; ctx.font='11px Arial'; ctx.textAlign='center'; ctx.fillText(sfxEnabled ? 'ON' : 'OFF', sfxRect[0]+25, H/2+39);
 
-  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-50, H/2+90, 100, 25);
-  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(t('close'), W/2, H/2+108);
+  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-50, H/2+70, 100, 25);
+  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center'; ctx.fillText(t('close'), W/2, H/2+88);
 }
 
 // ─── CHARACTER SELECT ─────────────────────────────────────────────────────
@@ -2728,9 +2728,9 @@ function drawLeaderboard(){
     ctx.fillText(entry.score, 280, y);
   });
 
-  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-40, H-35, 80, 25);
+  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-40, H-55, 80, 25);
   ctx.fillStyle='#fff'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
-  ctx.fillText(t('close'), W/2, H-18);
+  ctx.fillText(t('close'), W/2, H-38);
 }
 
 // ─── SHOP ────────────────────────────────────────────────────────────────
@@ -2763,9 +2763,9 @@ function drawShop(){
     ctx.fillText(t('buy'), W-55, y+36);
   });
 
-  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-40, H-35, 80, 25);
+  ctx.fillStyle='#FF6666'; ctx.fillRect(W/2-40, H-55, 80, 25);
   ctx.fillStyle='#fff'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
-  ctx.fillText(t('close'), W/2, H-18);
+  ctx.fillText(t('close'), W/2, H-38);
 }
 
 // ─── GAME OVER ───────────────────────────────────────────────────────────
@@ -2897,7 +2897,7 @@ document.addEventListener('click',e=>{
     }
 
     // Close button
-    if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+90 && canvasY < H/2+115) {
+    if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+70 && canvasY < H/2+95) {
       settingsOpen = false;
     }
     return;
@@ -2907,8 +2907,8 @@ document.addEventListener('click',e=>{
   if(showLeaderboard) {
     e.preventDefault();
     e.stopPropagation();
-    // Close button at W/2-40, H-35, 80x25
-    if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-35 && canvasY < H-10) {
+    // Close button at W/2-40, H-55, 80x25
+    if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-55 && canvasY < H-30) {
       showLeaderboard = false;
     }
     return;
@@ -2926,8 +2926,8 @@ document.addEventListener('click',e=>{
         buyItem(item.id);
       }
     });
-    // Close button at W/2-40, H-35, 80x25
-    if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-35 && canvasY < H-10) {
+    // Close button at W/2-40, H-55, 80x25
+    if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-55 && canvasY < H-30) {
       showShop = false;
     }
     return;
@@ -3448,14 +3448,14 @@ loop();
         sfxEnabled = !sfxEnabled;
         localStorage.setItem('sfxEnabled', sfxEnabled);
       }
-      if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+90 && canvasY < H/2+115) {
+      if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+70 && canvasY < H/2+95) {
         settingsOpen = false;
       }
       return;
     }
 
     if(showLeaderboard) {
-      if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-35 && canvasY < H-10) {
+      if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-55 && canvasY < H-30) {
         showLeaderboard = false;
       }
       return;
@@ -3469,7 +3469,7 @@ loop();
           buyItem(item.id);
         }
       });
-      if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-35 && canvasY < H-10) {
+      if(canvasX > W/2-40 && canvasX < W/2+40 && canvasY > H-55 && canvasY < H-30) {
         showShop = false;
       }
       return;
