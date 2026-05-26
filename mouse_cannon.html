@@ -44,6 +44,10 @@ body { background:#000; display:flex; align-items:center; justify-content:center
   </div>
   <div style="width:64px"></div>
 </div>
+
+<!-- Hidden input for name entry on touch devices -->
+<input id="nameInput" type="text" style="position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none;" maxlength="20">
+
 <script>
 const tg = window.Telegram.WebApp;
 tg.expand(); 
@@ -2652,39 +2656,31 @@ function drawSettings(){
 // ─── NAME INPUT SCREEN ───────────────────────────────────────────────────
 function drawNameInputScreen(){
   if(!playerNameScreenOpen) {
-    namePromptShown = false;
     return;
   }
 
-  // Show prompt once to get name from user
-  if(!namePromptShown) {
-    namePromptShown = true;
-    const promptMsg = t('enter_name_q') + ' (' + t('enter_name_placeholder') + ')';
-    const result = prompt('👤 ' + t('enter_name') + '\n\n' + promptMsg);
-    if(result && result.trim()) {
-      playerName = result.trim().substring(0, 20);
-      localStorage.setItem('playerName', playerName);
-      playerNameScreenOpen = false;
-      charSelectOpen = true;
-      console.log('Player name set:', playerName);
-    } else if(result !== null) {
-      // User clicked OK but entered empty - ask again
-      namePromptShown = false;
-    } else {
-      // User clicked Cancel - reset to ask again next frame
-      namePromptShown = false;
-    }
-    return;
-  }
-
-  // Draw UI while waiting for name input
+  // Draw name input UI
   ctx.fillStyle='rgba(0,0,0,0.85)'; ctx.fillRect(0,0,W,H);
   ctx.fillStyle='#222'; ctx.fillRect(W/2-140,H/2-120,280,240);
   ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.strokeRect(W/2-140,H/2-120,280,240);
   ctx.fillStyle='#FFD700'; ctx.font='bold 20px Arial'; ctx.textAlign='center';
   ctx.fillText('👤 ' + t('enter_name'), W/2, H/2-90);
-  ctx.fillStyle='#FFD700'; ctx.font='13px Arial';
-  ctx.fillText(t('name_input_hint'), W/2, H/2+80);
+  ctx.fillStyle='#888'; ctx.font='13px Arial';
+  ctx.fillText(t('enter_name_q'), W/2, H/2-50);
+
+  // Input box
+  ctx.fillStyle='#333'; ctx.fillRect(W/2-100, H/2-10, 200, 30);
+  ctx.strokeStyle='#FFD700'; ctx.lineWidth=1; ctx.strokeRect(W/2-100, H/2-10, 200, 30);
+  ctx.fillStyle='#FFD700'; ctx.font='16px Arial'; ctx.textAlign='left';
+  ctx.fillText(playerName + (T%40<20 ? '|' : ''), W/2-95, H/2+12);
+
+  // Confirm button
+  ctx.fillStyle='#3fb950'; ctx.fillRect(W/2-50, H/2+60, 100, 30);
+  ctx.fillStyle='#fff'; ctx.font='bold 14px Arial'; ctx.textAlign='center';
+  ctx.fillText(t('confirm'), W/2, H/2+80);
+
+  ctx.fillStyle='#999'; ctx.font='11px Arial'; ctx.textAlign='center';
+  ctx.fillText('(' + playerName.length + '/20)', W/2, H/2+35);
 }
 
 function drawCharSelect(){
@@ -3184,6 +3180,13 @@ function sfxYahoo(){
 function loop(){
   T++; sawRot+=0.07;
 
+  // Sync name input with playerName (for mobile keyboard input)
+  const nameInput = document.getElementById('nameInput');
+  if(playerNameScreenOpen) {
+    if(nameInput.value !== playerName) playerName = nameInput.value.substring(0, 20);
+    if(document.activeElement !== nameInput) nameInput.focus();
+  }
+
   const inAnim = animState !== null;
 
   if(!inAnim){
@@ -3375,6 +3378,18 @@ loop();
     const canvasY = y / scale;
 
     // Simulate click handler logic for UI overlays
+    if(playerNameScreenOpen) {
+      // Confirm button: W/2-50 to W/2+50, H/2+60 to H/2+90
+      if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+60 && canvasY < H/2+90) {
+        if(playerName.trim()) {
+          playerNameScreenOpen = false;
+          charSelectOpen = true;
+          console.log('Player name confirmed:', playerName);
+        }
+      }
+      return;
+    }
+
     if(charSelectOpen) {
       const chars = ['mouse','cat','monkey','pavel'];
       chars.forEach((c,i)=>{
@@ -3448,6 +3463,39 @@ loop();
     }
     e.preventDefault();
   }, {passive:false});
+
+  // ─── Name Input Handling ──────────────────────────────────────────────────
+  const nameInput = document.getElementById('nameInput');
+
+  // Sync input when user touches the name input box on canvas
+  document.addEventListener('click', e=>{
+    if(playerNameScreenOpen) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const scale = rect.width / W;
+      const canvasX = x / scale;
+      const canvasY = y / scale;
+      // Input box: W/2-100 to W/2+100, H/2-10 to H/2+20
+      if(canvasX > W/2-100 && canvasX < W/2+100 && canvasY > H/2-10 && canvasY < H/2+20) {
+        nameInput.focus();
+      }
+    }
+  });
+
+  nameInput.addEventListener('input', e=>{
+    playerName = e.target.value.substring(0, 20);
+  });
+
+  nameInput.addEventListener('keydown', e=>{
+    if(e.code === 'Enter' && playerName.trim()) {
+      playerNameScreenOpen = false;
+      charSelectOpen = true;
+      console.log('Player name confirmed:', playerName);
+      localStorage.setItem('playerName', playerName);
+      nameInput.blur();
+    }
+  });
 })();
 
 // ─── SPLASH SCREEN ────────────────────────────────────────────────────────
