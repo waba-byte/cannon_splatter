@@ -7,8 +7,33 @@
 <title>Mouse Cannon 💀</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
+/* ── Design Tokens: 2D Casual Cartoon (Angry Birds / Cut the Rope style) ── */
+:root {
+  /* Colors */
+  --bg-primary: #1A0A3C;
+  --bg-secondary: #2D1B69;
+  --accent-main: #7B3FE4;
+  --accent-glow: #E040FB;
+  --btn-primary: #5B4FE8;
+  --btn-highlight: rgba(255,255,255,0.35);
+  --text-primary: #FFFFFF;
+  --text-shadow: #1A0A3C;
+  --border-ui: 3px solid rgba(255,255,255,0.8);
+
+  /* Shapes */
+  --radius-btn: 50px;
+  --radius-panel: 20px;
+
+  /* Typography */
+  --font-game: 'Arial Black', sans-serif;
+
+  /* Effects */
+  --shadow-btn: 0 6px 0 rgba(0,0,0,0.4);
+  --glow-neon: 0 0 20px var(--accent-glow);
+}
+
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:#000; display:flex; align-items:center; justify-content:center; width:100vw; height:100vh; font-family:'Arial Black',Arial,sans-serif; overflow:hidden; touch-action:none; }
+body { background:#000; display:flex; align-items:center; justify-content:center; width:100vw; height:100vh; font-family:var(--font-game); overflow:hidden; touch-action:none; }
 #canvas { border-radius:8px; box-shadow:0 0 50px rgba(255,0,0,0.5); cursor:crosshair; display:block; transform-origin:center center; }
 
 /* ── touch controls overlay ── */
@@ -21,8 +46,8 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 #btn-restart { pointer-events:all; background:rgba(255,200,0,0.3); border:2px solid rgba(255,200,0,0.7); border-radius:12px; color:#FFD700; font-size:14px; font-weight:bold; padding:8px 18px; display:none; user-select:none; touch-action:none; }
 
 /* ── name input styling ── */
-#nameInput::placeholder { color:#7a9070; font-style:italic; opacity:0.8; }
-#nameInput::-webkit-input-placeholder { color:#7a9070; font-style:italic; opacity:0.8; }
+#nameInput::placeholder { color:rgba(255,255,255,0.5); font-style:italic; opacity:0.7; letter-spacing:1px; }
+#nameInput::-webkit-input-placeholder { color:rgba(255,255,255,0.5); font-style:italic; opacity:0.7; letter-spacing:1px; }
 
 /* ── splash screen ── */
 #splash { position:fixed; inset:0; z-index:9999; background:#000; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:none; transition:opacity 0.6s ease; }
@@ -49,25 +74,24 @@ body { background:#000; display:flex; align-items:center; justify-content:center
   <div style="width:64px"></div>
 </div>
 
-<!-- Visible input for name entry with neumorphic styling -->
+<!-- Name input: 2D Casual Cartoon style -->
 <input id="nameInput" type="text" maxlength="20" style="
-  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:280px;height:50px;
-  font-size:20px;font-family:'Georgia',serif;font-weight:bold;
-  padding:12px 16px;padding-left:20px;
-  border:none;border-radius:14px;
-  background:#cdd8c4;
-  color:#2a3a22;
-  box-shadow:
-    inset 3px 3px 8px rgba(255,255,255,0.6),
-    inset -3px -3px 8px rgba(165,178,156,0.4),
-    0 8px 16px rgba(0,0,0,0.15);
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:300px; height:60px;
+  font-size:22px; font-family:var(--font-game); font-weight:bold;
+  padding:12px 20px;
+  border:var(--border-ui);
+  border-radius:var(--radius-btn);
+  background:linear-gradient(180deg, var(--btn-highlight) 0%, var(--btn-primary) 100%);
+  color:var(--text-primary);
+  box-shadow:var(--shadow-btn), var(--glow-neon);
   outline:none;
-  transition:all 0.2s ease;
+  transition:all 0.15s ease;
   display:none;
   z-index:1000;
-  letter-spacing:0.5px;
-" placeholder="Scrivi nome..." onblur="this.style.boxShadow='inset 3px 3px 8px rgba(255,255,255,0.6),inset -3px -3px 8px rgba(165,178,156,0.4),0 8px 16px rgba(0,0,0,0.15)'" onfocus="this.style.boxShadow='inset 3px 3px 8px rgba(255,255,255,0.6),inset -3px -3px 8px rgba(165,178,156,0.4),0 12px 24px rgba(74,124,89,0.3)'">
+  letter-spacing:2px;
+  text-transform:uppercase;
+" placeholder="SCRIVI NOME..." onfocus="this.style.boxShadow='var(--shadow-btn), 0 0 30px var(--accent-glow)'" onblur="this.style.boxShadow='var(--shadow-btn), var(--glow-neon)'">
 
 <script>
 const tg = window.Telegram.WebApp;
