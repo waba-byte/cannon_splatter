@@ -205,34 +205,82 @@ const PAL = {
 };
 
 function nPanel(x, y, w, h, r=14) {
+  // 2D Casual Cartoon style: gradient background + white border + drop shadow
+
+  // Drop shadow
+  ctx.shadowColor='rgba(0,0,0,0.4)';
+  ctx.shadowBlur=0;
+  ctx.shadowOffsetX=6;
+  ctx.shadowOffsetY=6;
+
+  // Gradient background (dark purple → accent purple)
+  const grad = ctx.createLinearGradient(x, y, x, y+h);
+  grad.addColorStop(0, '#2D1B69');
+  grad.addColorStop(1, '#7B3FE4');
+  ctx.fillStyle = grad;
+
+  // Draw panel
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.fill();
+
+  // White border (3px)
   ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
-  ctx.fillStyle=PAL.base; ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill();
-  ctx.shadowColor=PAL.dark;  ctx.shadowBlur=12; ctx.shadowOffsetX=5;  ctx.shadowOffsetY=5;
-  ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill();
-  ctx.shadowColor=PAL.light; ctx.shadowBlur=12; ctx.shadowOffsetX=-5; ctx.shadowOffsetY=-5;
-  ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fill();
-  ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  ctx.stroke();
 }
 
 function nBtn(x, y, w, h, label, active=false, col) {
-  ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
-  ctx.fillStyle = col || PAL.base;
-  ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
+  // 2D Casual Cartoon style: gradient + white border + drop shadow
+
+  // Drop shadow (arcade 3D effect)
+  ctx.shadowColor='rgba(0,0,0,0.4)';
+  ctx.shadowBlur=0;
+  ctx.shadowOffsetX=4;
+  ctx.shadowOffsetY=4;
+
+  // Gradient fill (purple/magenta style)
+  const grad = ctx.createLinearGradient(x, y, x, y+h);
+  grad.addColorStop(0, 'rgba(255,255,255,0.35)');
+  grad.addColorStop(1, col || '#5B4FE8');
+  ctx.fillStyle = grad;
+
+  // Draw button with rounded corners
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 12);
+  ctx.fill();
+
+  // White border (3px)
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 12);
+  ctx.stroke();
+
+  // Neon glow when active
   if(active) {
-    ctx.shadowColor=PAL.dark;  ctx.shadowBlur=6; ctx.shadowOffsetX=3;  ctx.shadowOffsetY=3;
-    ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
-    ctx.shadowColor=PAL.light; ctx.shadowBlur=6; ctx.shadowOffsetX=-3; ctx.shadowOffsetY=-3;
-    ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
-  } else {
-    ctx.shadowColor=PAL.light; ctx.shadowBlur=8; ctx.shadowOffsetX=-4; ctx.shadowOffsetY=-4;
-    ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
-    ctx.shadowColor=PAL.dark;  ctx.shadowBlur=8; ctx.shadowOffsetX=4;  ctx.shadowOffsetY=4;
-    ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
+    ctx.shadowColor = '#E040FB';
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = '#E040FB';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(x-2, y-2, w+4, h+4, 12);
+    ctx.stroke();
   }
+
+  // Reset shadow for text
   ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+
+  // Label text
   if(label) {
-    ctx.fillStyle = active ? PAL.textDark : PAL.textMid;
-    ctx.font='bold 13px Arial'; ctx.textAlign='center';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font='bold 13px Arial';
+    ctx.textAlign='center';
     ctx.fillText(label, x+w/2, y+h/2+5);
   }
 }
