@@ -529,23 +529,41 @@ function drawRuins(offset) {
 
 // ─── GROUND (world space) ─────────────────────────────────────────────────
 function drawGround() {
+  let col1, col2, stripCol, stripAlpha;
+  switch(theme) {
+    case 'day':
+      col1='#5a8a38'; col2='#3d6b1f'; stripCol='rgba(0,0,0,0.2)'; stripAlpha=0.4;
+      break;
+    case 'snow':
+      col1='#e8f0f8'; col2='#c0d8e8'; stripCol='rgba(100,150,200,0.3)'; stripAlpha=0.3;
+      break;
+    case 'rain':
+      col1='#2c3e50'; col2='#1a2633'; stripCol='rgba(100,150,200,0.4)'; stripAlpha=0.4;
+      break;
+    case 'sunset':
+      col1='#3d1f05'; col2='#1a0a00'; stripCol='rgba(255,100,50,0.15)'; stripAlpha=0.3;
+      break;
+    default: // night
+      col1='#0a0a0a'; col2='#000000'; stripCol='rgba(100,100,255,0.2)'; stripAlpha=0.3;
+  }
   const gr=ctx.createLinearGradient(0,GY,0,H);
-  gr.addColorStop(0,'#2E1505'); gr.addColorStop(1,'#0A0100');
+  gr.addColorStop(0,col1); gr.addColorStop(1,col2);
   ctx.fillStyle=gr; ctx.fillRect(-cam.x,GY,WORLD_W,H-GY);
-  ctx.fillStyle='#C62828'; ctx.fillRect(-cam.x,GY,WORLD_W,3);
-  // cracks every 120px
-  ctx.strokeStyle='rgba(0,0,0,0.55)'; ctx.lineWidth=1;
+
+  ctx.fillStyle=stripCol; ctx.fillRect(-cam.x,GY,WORLD_W,3);
+
+  ctx.strokeStyle=`rgba(0,0,0,${stripAlpha})`; ctx.lineWidth=1;
   for(let cx2=0;cx2<WORLD_W;cx2+=120){
     ctx.beginPath(); ctx.moveTo(cx2,GY+3); ctx.lineTo(cx2+18,GY+15); ctx.lineTo(cx2+10,GY+26); ctx.stroke();
   }
-  // distance markers every 500px
-  ctx.fillStyle='rgba(255,100,100,0.25)';
+
+  ctx.fillStyle=`rgba(100,100,100,${stripAlpha*0.5})`;
   ctx.font='11px Arial'; ctx.textAlign='center';
   for(let mx=500;mx<WORLD_W;mx+=500){
     ctx.fillRect(mx-1,GY,2,12);
-    ctx.fillStyle='rgba(255,100,100,0.5)';
+    ctx.fillStyle=`rgba(100,100,100,${stripAlpha})`;
     ctx.fillText(Math.round(mx/METER)+'m', mx, GY+22);
-    ctx.fillStyle='rgba(255,100,100,0.25)';
+    ctx.fillStyle=`rgba(100,100,100,${stripAlpha*0.5})`;
   }
 }
 
