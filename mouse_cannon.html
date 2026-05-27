@@ -20,6 +20,10 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 #btn-fire:active { background:rgba(255,30,30,0.7); }
 #btn-restart { pointer-events:all; background:rgba(255,200,0,0.3); border:2px solid rgba(255,200,0,0.7); border-radius:12px; color:#FFD700; font-size:14px; font-weight:bold; padding:8px 18px; display:none; user-select:none; touch-action:none; }
 
+/* ── name input styling ── */
+#nameInput::placeholder { color:#7a9070; font-style:italic; opacity:0.8; }
+#nameInput::-webkit-input-placeholder { color:#7a9070; font-style:italic; opacity:0.8; }
+
 /* ── splash screen ── */
 #splash { position:fixed; inset:0; z-index:9999; background:#000; display:flex; align-items:center; justify-content:center; cursor:pointer; touch-action:none; transition:opacity 0.6s ease; }
 #splash img { max-width:100%; max-height:100%; object-fit:contain; display:block; }
@@ -45,8 +49,25 @@ body { background:#000; display:flex; align-items:center; justify-content:center
   <div style="width:64px"></div>
 </div>
 
-<!-- Visible input for name entry -->
-<input id="nameInput" type="text" maxlength="20" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:250px;height:40px;font-size:18px;padding:8px;border:2px solid #4a7c59;border-radius:8px;background:#cdd8c4;color:#2a3a22;font-family:Arial;display:none;z-index:1000;box-shadow:0 8px 20px rgba(0,0,0,0.3);" placeholder="Scrivi nome...">
+<!-- Visible input for name entry with neumorphic styling -->
+<input id="nameInput" type="text" maxlength="20" style="
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:280px;height:50px;
+  font-size:20px;font-family:'Georgia',serif;font-weight:bold;
+  padding:12px 16px;padding-left:20px;
+  border:none;border-radius:14px;
+  background:#cdd8c4;
+  color:#2a3a22;
+  box-shadow:
+    inset 3px 3px 8px rgba(255,255,255,0.6),
+    inset -3px -3px 8px rgba(165,178,156,0.4),
+    0 8px 16px rgba(0,0,0,0.15);
+  outline:none;
+  transition:all 0.2s ease;
+  display:none;
+  z-index:1000;
+  letter-spacing:0.5px;
+" placeholder="Scrivi nome..." onblur="this.style.boxShadow='inset 3px 3px 8px rgba(255,255,255,0.6),inset -3px -3px 8px rgba(165,178,156,0.4),0 8px 16px rgba(0,0,0,0.15)'" onfocus="this.style.boxShadow='inset 3px 3px 8px rgba(255,255,255,0.6),inset -3px -3px 8px rgba(165,178,156,0.4),0 12px 24px rgba(74,124,89,0.3)'">
 
 <script>
 const tg = window.Telegram.WebApp;
