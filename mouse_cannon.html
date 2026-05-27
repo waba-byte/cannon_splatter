@@ -2745,71 +2745,100 @@ function drawParticles(){
 
 // ─── HUD (screen space) ──────────────────────────────────────────────────
 function drawHUD() {
-  // DISTANCE (big center-top)
+  // 2D Casual Cartoon HUD styling
+
+  // DISTANCE (big arcade counter, center-top)
   const curDist = mouse&&mouse.alive ? Math.round(mouse.wx/METER) : lastDist;
   ctx.textAlign='center';
-  ctx.font='bold 36px Georgia,serif';
-  ctx.shadowColor=PAL.green; ctx.shadowBlur=8;
-  ctx.fillStyle=PAL.textDark;
+  ctx.font='bold 48px "Arial Black"';
+  ctx.fillStyle='#FFFFFF';
+  ctx.shadowColor='#E040FB';
+  ctx.shadowBlur=20;
+  ctx.shadowOffsetX=3;
+  ctx.shadowOffsetY=3;
   ctx.fillText(curDist+'m', W/2, 44);
   ctx.shadowBlur=0;
-  ctx.font='13px Arial'; ctx.fillStyle=PAL.textFaint;
-  ctx.fillText(t('distance'), W/2, 60);
+
+  ctx.font='bold 16px "Arial Black"';
+  ctx.fillStyle='rgba(255,255,255,0.8)';
+  ctx.fillText(t('distance'), W/2, 65);
 
   // SPEED
   if(mouse&&mouse.alive){
     const spd=Math.round(Math.hypot(mouse.vx,mouse.vy)*8);
-    ctx.font='bold 18px Arial'; ctx.fillStyle=PAL.brown; ctx.textAlign='left';
+    ctx.font='bold 16px "Arial Black"'; ctx.fillStyle='#76FF03'; ctx.textAlign='left';
     ctx.fillText(`${spd} km/h`, 12, 28);
   }
 
-  // BEST
-  ctx.textAlign='right'; ctx.font='13px Arial'; ctx.fillStyle=PAL.blue;
+  // BEST & KILLS
+  ctx.textAlign='right'; ctx.font='bold 13px "Arial Black"'; ctx.fillStyle='rgba(255,255,255,0.7)';
   ctx.fillText(`⭐ ${t('best')}: ${bestDist}m`, W-10, 22);
-  ctx.fillStyle=PAL.green;
+  ctx.fillStyle='#76FF03';
   ctx.fillText(`💀 ${kills}  +${score}⭐`, W-10, 42);
 
   // MICE LEFT
-  ctx.textAlign='left'; ctx.font='18px Arial'; ctx.fillStyle=PAL.green;
+  ctx.textAlign='left'; ctx.font='20px Arial'; ctx.fillStyle='#FFFFFF';
   for(let i=0;i<mLeft;i++) ctx.fillText('🐭', 10+i*26, 55);
 
-  // POWER BAR
+  // POWER BAR (vivid gradient)
   if(charging){
-    nPanel(W/2-80, H-36, 160, 22, 6);
+    nPanel(W/2-80, H-42, 160, 26, 8);
     const pw=Math.floor(power);
-    const col=pw<40?'#8ab07a':pw<75?'#d4a04a':'#b04040';
+
+    // Neon gradient: green → gold → red
+    const powerGrad = ctx.createLinearGradient(0, H-40, 0, H-16);
+    powerGrad.addColorStop(0, '#76FF03');   // neon green
+    powerGrad.addColorStop(0.5, '#FFD700'); // neon gold
+    powerGrad.addColorStop(1, '#FF4444');   // neon red
     ctx.shadowColor='transparent'; ctx.shadowBlur=0;
-    ctx.fillStyle=col; ctx.fillRect(W/2-78, H-34, 156*power/100, 18);
-    ctx.fillStyle=PAL.textDark; ctx.font='bold 13px Arial'; ctx.textAlign='center';
-    ctx.fillText(t('power')+'  '+pw+'%', W/2, H-21);
+    ctx.fillStyle = powerGrad;
+    ctx.fillRect(W/2-78, H-40, 156*power/100, 22);
+
+    ctx.fillStyle='#FFFFFF';
+    ctx.font='bold 14px "Arial Black"';
+    ctx.textAlign='center';
+    ctx.fillText(pw+'%', W/2, H-22);
   }
 
-  // ANGLE SELECTOR
+  // ANGLE SELECTOR (vivid magenta arc)
   if(!mouse||!mouse.alive){
     const deg = Math.abs(angle);
     const cx=110, cy=H-55;
-    ctx.strokeStyle='rgba(74,124,89,0.5)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.arc(cx,cy,36,Math.PI,Math.PI*1.5,false); ctx.stroke();
+    ctx.strokeStyle='rgba(224,64,251,0.8)';
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.arc(cx,cy,36,Math.PI,Math.PI*1.5);
+    ctx.stroke();
+
     const arcAngle = Math.PI + (deg/90)*Math.PI*0.5;
     const ix=cx+Math.cos(arcAngle)*36, iy=cy+Math.sin(arcAngle)*36;
-    ctx.fillStyle=PAL.green; ctx.beginPath(); ctx.arc(ix,iy,5,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle=PAL.textDark; ctx.font='bold 28px Georgia,serif'; ctx.textAlign='center';
+
+    // Neon green dot
+    ctx.fillStyle='#76FF03';
+    ctx.beginPath();
+    ctx.arc(ix,iy,6,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle='#FFFFFF';
+    ctx.font='bold 32px "Arial Black"';
+    ctx.textAlign='center';
     ctx.fillText(deg+'°', cx, cy+10);
-    ctx.fillStyle=PAL.textFaint; ctx.font='11px Arial';
-    ctx.fillText(t('angle'), cx, cy+26);
+    ctx.fillStyle='rgba(255,255,255,0.6)';
+    ctx.font='11px Arial';
+    ctx.fillText(t('angle'), cx, cy+28);
   }
 
-  // HUD buttons (neumorphic)
+  // HUD buttons (shop, leaderboard, settings)
   nBtn(W-135, 8, 37, 25, '', showShop);
-  ctx.fillStyle='#000'; ctx.font='18px Arial'; ctx.textAlign='center';
+  ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
   ctx.fillText('💰', W-116.5, 26);
 
   nBtn(W-90, 8, 37, 25, '', showLeaderboard);
-  ctx.fillStyle='#000'; ctx.font='18px Arial'; ctx.textAlign='center';
+  ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
   ctx.fillText('🏆', W-71.5, 26);
 
   nBtn(W-45, 8, 37, 25, '', settingsOpen);
-  ctx.fillStyle='#000'; ctx.font='18px Arial'; ctx.textAlign='center';
+  ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
   ctx.fillText('⚙️', W-26.5, 26);
 }
 
