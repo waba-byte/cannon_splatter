@@ -7,29 +7,42 @@
 <title>Mouse Cannon 💀</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-/* ── Design Tokens: 2D Casual Cartoon (Angry Birds / Cut the Rope style) ── */
+/* ── Design Tokens: Casual Colorful Game (Splatter Cannon style) ── */
 :root {
-  /* Colors */
-  --bg-primary: #1A0A3C;
-  --bg-secondary: #2D1B69;
-  --accent-main: #7B3FE4;
-  --accent-glow: #E040FB;
-  --btn-primary: #5B4FE8;
-  --btn-highlight: rgba(255,255,255,0.35);
+  /* Primary Colors - Vivid & Saturated */
+  --primary-cyan: #00D9FF;
+  --primary-violet: #7B68EE;
+  --primary-orange: #FFA500;
+  --primary-yellow: #FFD700;
+  --primary-red: #FF6B6B;
+  --primary-green: #00FF00;
+  --primary-pink: #FF69B4;
+
+  /* Text & UI */
+  --text-white: #FFFFFF;
+  --text-shadow: #333333;
+  --bg-sky: #87CEEB;
+  --bg-light: #F0F8FF;
+
+  /* Legacy (for compatibility) */
+  --bg-primary: #87CEEB;
+  --bg-secondary: #E0F6FF;
+  --accent-main: #00D9FF;
+  --accent-glow: #FF69B4;
+  --btn-primary: #00D9FF;
+  --btn-highlight: rgba(255,255,255,0.5);
   --text-primary: #FFFFFF;
-  --text-shadow: #1A0A3C;
-  --border-ui: 3px solid rgba(255,255,255,0.8);
+  --border-ui: 2px solid rgba(255,255,255,0.9);
 
   /* Shapes */
-  --radius-btn: 50px;
-  --radius-panel: 20px;
+  --radius-btn: 16px;
+  --radius-panel: 24px;
 
   /* Typography */
   --font-game: 'Arial Black', sans-serif;
 
   /* Effects */
-  --shadow-btn: 0 6px 0 rgba(0,0,0,0.4);
-  --glow-neon: 0 0 20px var(--accent-glow);
+  --shadow-btn: 4px 4px 0 rgba(51,51,51,0.4);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -204,19 +217,19 @@ const PAL = {
   overlay:    'rgba(30,45,22,0.80)',
 };
 
-function nPanel(x, y, w, h, r=14) {
-  // 2D Casual Cartoon style: gradient background + white border + drop shadow
+function nPanel(x, y, w, h, r=24) {
+  // Casual colorful panel: soft gradient + white border + drop shadow
 
-  // Drop shadow
-  ctx.shadowColor='rgba(0,0,0,0.4)';
-  ctx.shadowBlur=0;
-  ctx.shadowOffsetX=6;
-  ctx.shadowOffsetY=6;
+  // Drop shadow (soft & warm)
+  ctx.shadowColor='rgba(51,51,51,0.3)';
+  ctx.shadowBlur=4;
+  ctx.shadowOffsetX=4;
+  ctx.shadowOffsetY=4;
 
-  // Gradient background (dark purple → accent purple)
+  // Gradient background (light → saturated color)
   const grad = ctx.createLinearGradient(x, y, x, y+h);
-  grad.addColorStop(0, '#2D1B69');
-  grad.addColorStop(1, '#7B3FE4');
+  grad.addColorStop(0, '#E0F6FF');
+  grad.addColorStop(1, '#87CEEB');
   ctx.fillStyle = grad;
 
   // Draw panel
@@ -224,63 +237,69 @@ function nPanel(x, y, w, h, r=14) {
   ctx.roundRect(x, y, w, h, r);
   ctx.fill();
 
-  // White border (3px)
+  // White border (2px)
   ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
-  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
   ctx.stroke();
 }
 
 function nBtn(x, y, w, h, label, active=false, col) {
-  // 2D Casual Cartoon style: gradient + white border + drop shadow
+  // Casual colorful button: 3D gradient + white border + drop shadow
 
-  // Drop shadow (arcade 3D effect)
-  ctx.shadowColor='rgba(0,0,0,0.4)';
+  // Drop shadow (warm 3D effect)
+  ctx.shadowColor='rgba(51,51,51,0.35)';
   ctx.shadowBlur=0;
   ctx.shadowOffsetX=4;
   ctx.shadowOffsetY=4;
 
-  // Gradient fill (purple/magenta style)
+  // Gradient fill (light → saturated, default cyan-violet)
+  const baseColor = col || '#00D9FF';
+  const lightColor = col ? 'rgba(255,255,255,0.4)' : '#B3F0FF';
   const grad = ctx.createLinearGradient(x, y, x, y+h);
-  grad.addColorStop(0, 'rgba(255,255,255,0.35)');
-  grad.addColorStop(1, col || '#5B4FE8');
+  grad.addColorStop(0, lightColor);
+  grad.addColorStop(1, baseColor);
   ctx.fillStyle = grad;
 
   // Draw button with rounded corners
   ctx.beginPath();
-  ctx.roundRect(x, y, w, h, 12);
+  ctx.roundRect(x, y, w, h, 16);
   ctx.fill();
 
-  // White border (3px)
-  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
-  ctx.lineWidth = 3;
+  // White border (2.5px)
+  ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.roundRect(x, y, w, h, 12);
+  ctx.roundRect(x, y, w, h, 16);
   ctx.stroke();
 
-  // Neon glow when active
+  // Highlight glow when active
   if(active) {
-    ctx.shadowColor = '#E040FB';
-    ctx.shadowBlur = 15;
+    ctx.shadowColor = baseColor;
+    ctx.shadowBlur = 12;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-    ctx.strokeStyle = '#E040FB';
+    ctx.strokeStyle = baseColor;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(x-2, y-2, w+4, h+4, 12);
+    ctx.roundRect(x-2, y-2, w+4, h+4, 16);
     ctx.stroke();
   }
 
   // Reset shadow for text
   ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
 
-  // Label text
+  // Label text (white with black outline for readability)
   if(label) {
     ctx.fillStyle = '#FFFFFF';
-    ctx.font='bold 13px Arial';
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 1;
+    ctx.font='bold 13px Arial Black';
     ctx.textAlign='center';
+    ctx.strokeText(label, x+w/2, y+h/2+5);
     ctx.fillText(label, x+w/2, y+h/2+5);
   }
 }
@@ -2745,35 +2764,53 @@ function drawParticles(){
 
 // ─── HUD (screen space) ──────────────────────────────────────────────────
 function drawHUD() {
-  // 2D Casual Cartoon HUD styling
+  // Casual colorful HUD styling
 
-  // DISTANCE (big arcade counter, center-top)
+  // DISTANCE (3D gradient text - cyan to violet)
   const curDist = mouse&&mouse.alive ? Math.round(mouse.wx/METER) : lastDist;
   ctx.textAlign='center';
-  ctx.font='bold 48px "Arial Black"';
-  ctx.fillStyle='#FFFFFF';
-  ctx.shadowColor='#E040FB';
-  ctx.shadowBlur=20;
-  ctx.shadowOffsetX=3;
-  ctx.shadowOffsetY=3;
+  ctx.font='bold 52px "Arial Black"';
+
+  // Create gradient text effect
+  const distGrad = ctx.createLinearGradient(W/2-60, 20, W/2+60, 50);
+  distGrad.addColorStop(0, '#00D9FF');
+  distGrad.addColorStop(1, '#7B68EE');
+  ctx.fillStyle = distGrad;
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=2;
+  ctx.strokeText(curDist+'m', W/2, 44);
+  ctx.fillStyle = distGrad;
   ctx.fillText(curDist+'m', W/2, 44);
-  ctx.shadowBlur=0;
 
   ctx.font='bold 16px "Arial Black"';
-  ctx.fillStyle='rgba(255,255,255,0.8)';
+  ctx.fillStyle='#00D9FF';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=1.5;
+  ctx.strokeText(t('distance'), W/2, 65);
+  ctx.fillStyle='#00D9FF';
   ctx.fillText(t('distance'), W/2, 65);
 
-  // SPEED
+  // SPEED (orange)
   if(mouse&&mouse.alive){
     const spd=Math.round(Math.hypot(mouse.vx,mouse.vy)*8);
-    ctx.font='bold 16px "Arial Black"'; ctx.fillStyle='#76FF03'; ctx.textAlign='left';
+    ctx.font='bold 16px "Arial Black"'; ctx.fillStyle='#FFA500'; ctx.textAlign='left';
+    ctx.strokeStyle='#FFFFFF'; ctx.lineWidth=1.5;
+    ctx.strokeText(`${spd} km/h`, 12, 28);
+    ctx.fillStyle='#FFA500';
     ctx.fillText(`${spd} km/h`, 12, 28);
   }
 
-  // BEST & KILLS
-  ctx.textAlign='right'; ctx.font='bold 13px "Arial Black"'; ctx.fillStyle='rgba(255,255,255,0.7)';
+  // BEST & KILLS (yellow & red)
+  ctx.textAlign='right'; ctx.font='bold 13px "Arial Black"';
+  ctx.fillStyle='#FFD700';
+  ctx.strokeStyle='#FFFFFF'; ctx.lineWidth=1.5;
+  ctx.strokeText(`⭐ ${t('best')}: ${bestDist}m`, W-10, 22);
+  ctx.fillStyle='#FFD700';
   ctx.fillText(`⭐ ${t('best')}: ${bestDist}m`, W-10, 22);
-  ctx.fillStyle='#76FF03';
+
+  ctx.fillStyle='#FF6B6B';
+  ctx.strokeText(`💀 ${kills}  +${score}⭐`, W-10, 42);
+  ctx.fillStyle='#FF6B6B';
   ctx.fillText(`💀 ${kills}  +${score}⭐`, W-10, 42);
 
   // MICE LEFT
@@ -2797,14 +2834,17 @@ function drawHUD() {
     ctx.fillStyle='#FFFFFF';
     ctx.font='bold 14px "Arial Black"';
     ctx.textAlign='center';
+    ctx.strokeStyle='#000000';
+    ctx.lineWidth=1.5;
+    ctx.strokeText(pw+'%', W/2, H-22);
     ctx.fillText(pw+'%', W/2, H-22);
   }
 
-  // ANGLE SELECTOR (vivid magenta arc)
+  // ANGLE SELECTOR (orange arc, yellow number)
   if(!mouse||!mouse.alive){
     const deg = Math.abs(angle);
     const cx=110, cy=H-55;
-    ctx.strokeStyle='rgba(224,64,251,0.8)';
+    ctx.strokeStyle='#FFA500';
     ctx.lineWidth=3;
     ctx.beginPath();
     ctx.arc(cx,cy,36,Math.PI,Math.PI*1.5);
@@ -2813,33 +2853,44 @@ function drawHUD() {
     const arcAngle = Math.PI + (deg/90)*Math.PI*0.5;
     const ix=cx+Math.cos(arcAngle)*36, iy=cy+Math.sin(arcAngle)*36;
 
-    // Neon green dot
-    ctx.fillStyle='#76FF03';
+    // Yellow dot
+    ctx.fillStyle='#FFD700';
     ctx.beginPath();
     ctx.arc(ix,iy,6,0,Math.PI*2);
     ctx.fill();
+    ctx.strokeStyle='#FFFFFF';
+    ctx.lineWidth=1.5;
+    ctx.stroke();
 
-    ctx.fillStyle='#FFFFFF';
+    ctx.fillStyle='#FFD700';
     ctx.font='bold 32px "Arial Black"';
     ctx.textAlign='center';
+    ctx.strokeStyle='#FFFFFF';
+    ctx.lineWidth=2;
+    ctx.strokeText(deg+'°', cx, cy+10);
+    ctx.fillStyle='#FFD700';
     ctx.fillText(deg+'°', cx, cy+10);
-    ctx.fillStyle='rgba(255,255,255,0.6)';
+    ctx.fillStyle='#FFA500';
     ctx.font='11px Arial';
+    ctx.strokeStyle='#FFFFFF';
+    ctx.lineWidth=1;
+    ctx.strokeText(t('angle'), cx, cy+28);
+    ctx.fillStyle='#FFA500';
     ctx.fillText(t('angle'), cx, cy+28);
   }
 
-  // HUD buttons (shop, leaderboard, settings)
-  nBtn(W-135, 8, 37, 25, '', showShop);
+  // HUD buttons (shop, leaderboard, settings) - vertical on left side
+  nBtn(10, 208, 37, 25, '', showShop);
   ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('💰', W-116.5, 26);
+  ctx.fillText('💰', 28.5, 226);
 
-  nBtn(W-90, 8, 37, 25, '', showLeaderboard);
+  nBtn(10, 258, 37, 25, '', showLeaderboard);
   ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('🏆', W-71.5, 26);
+  ctx.fillText('🏆', 28.5, 276);
 
-  nBtn(W-45, 8, 37, 25, '', settingsOpen);
+  nBtn(10, 308, 37, 25, '', settingsOpen);
   ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('⚙️', W-26.5, 26);
+  ctx.fillText('⚙️', 28.5, 326);
 }
 
 function drawTexts(){
