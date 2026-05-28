@@ -2910,109 +2910,183 @@ function drawFlash(){ /* rimosso — niente più flash schermo */ }
 // ─── SETTINGS OVERLAY ─────────────────────────────────────────────────────
 function drawSettings(){
   if(!settingsOpen) return;
-  ctx.fillStyle=PAL.overlay; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(50,50,50,0.7)'; ctx.fillRect(0,0,W,H);
   nPanel(W/2-150, H/2-180, 300, 360);
-  ctx.fillStyle=PAL.textDark; ctx.font='bold 18px Georgia,serif'; ctx.textAlign='center';
+
+  // Title with gradient
+  const titleGrad = ctx.createLinearGradient(W/2-80, H/2-170, W/2+80, H/2-150);
+  titleGrad.addColorStop(0, '#00D9FF');
+  titleGrad.addColorStop(1, '#7B68EE');
+  ctx.fillStyle = titleGrad;
+  ctx.font='bold 20px Arial Black'; ctx.textAlign='center';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=1.5;
+  ctx.strokeText(t('settings'), W/2, H/2-160);
+  ctx.fillStyle = titleGrad;
   ctx.fillText(t('settings'), W/2, H/2-160);
 
-  ctx.fillStyle=PAL.textFaint; ctx.font='12px Arial'; ctx.textAlign='left';
+  // Language section
+  ctx.fillStyle='#FFA500'; ctx.font='bold 12px Arial Black'; ctx.textAlign='left';
   ctx.fillText(t('lang'), W/2-140, H/2-130);
   ['it','en','ru'].forEach((l,i)=>{
     const x = W/2-120+i*60, sel = lang===l;
-    nBtn(x, H/2-115, 50, 20, '', sel);
-    ctx.fillStyle = sel ? PAL.textDark : PAL.textMid; ctx.font = sel ? 'bold 12px Arial' : '11px Arial'; ctx.textAlign='center';
+    const btnColor = sel ? '#00D9FF' : '#87CEEB';
+    nBtn(x, H/2-115, 50, 20, '', sel, btnColor);
+    ctx.fillStyle = sel ? '#7B68EE' : '#333333'; ctx.font = sel ? 'bold 12px Arial Black' : '11px Arial'; ctx.textAlign='center';
     ctx.fillText(l.toUpperCase(), x+25, H/2-99);
   });
 
-  ctx.fillStyle=PAL.textFaint; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText(t('theme'), W/2-140, H/2-50);
+  // Theme section
+  ctx.fillStyle='#FFA500'; ctx.font='bold 12px Arial Black'; ctx.textAlign='left';
+  ctx.fillText(t('theme'), W/2-140, H/2-50);
   const themes = ['night','day','sunset','rain','snow'];
   const themeEmojis = {'night':'🌙','day':'☀️','sunset':'🌅','rain':'🌧️','snow':'❄️'};
   themes.forEach((th,i)=>{
     const x = W/2-130+i*50, sel = theme===th;
-    nBtn(x, H/2-35, 40, 18, '', sel);
+    const btnColor = sel ? '#FFD700' : '#F0E68C';
+    nBtn(x, H/2-35, 40, 18, '', sel, btnColor);
     ctx.fillStyle = '#000'; ctx.font = '14px Arial'; ctx.textAlign='center';
     ctx.fillText(themeEmojis[th], x+20, H/2-21);
   });
 
-  ctx.fillStyle=PAL.textFaint; ctx.font='12px Arial'; ctx.textAlign='left'; ctx.fillText(t('sfx'), W/2-140, H/2+10);
-  nBtn(W/2-120, H/2+25, 50, 20, '', sfxEnabled);
-  ctx.fillStyle = sfxEnabled ? PAL.textDark : PAL.textMid; ctx.font='11px Arial'; ctx.textAlign='center'; ctx.fillText(sfxEnabled ? 'ON' : 'OFF', W/2-95, H/2+39);
+  // SFX section
+  ctx.fillStyle='#FFA500'; ctx.font='bold 12px Arial Black'; ctx.textAlign='left';
+  ctx.fillText(t('sfx'), W/2-140, H/2+10);
+  const sfxColor = sfxEnabled ? '#00FF00' : '#999999';
+  nBtn(W/2-120, H/2+25, 50, 20, '', sfxEnabled, sfxColor);
+  ctx.fillStyle = sfxEnabled ? '#333333' : '#999999'; ctx.font='bold 11px Arial Black'; ctx.textAlign='center';
+  ctx.fillText(sfxEnabled ? 'ON' : 'OFF', W/2-95, H/2+39);
 
-  nBtn(W/2-50, H/2+70, 100, 25, t('close'));
+  nBtn(W/2-50, H/2+70, 100, 25, t('close'), false, '#FF6B6B');
 }
 
 // ─── NAME INPUT SCREEN ───────────────────────────────────────────────────
 function drawNameInputScreen(){
   if(!playerNameScreenOpen) return;
-  ctx.fillStyle=PAL.overlay; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(50,50,50,0.7)'; ctx.fillRect(0,0,W,H);
   nPanel(W/2-140, H/2-120, 280, 240);
-  ctx.fillStyle=PAL.textDark; ctx.font='bold 20px Georgia,serif'; ctx.textAlign='center';
+
+  // Title with gradient
+  const nameGrad = ctx.createLinearGradient(W/2-60, H/2-100, W/2+60, H/2-80);
+  nameGrad.addColorStop(0, '#00D9FF');
+  nameGrad.addColorStop(1, '#7B68EE');
+  ctx.fillStyle = nameGrad;
+  ctx.font='bold 20px Arial Black'; ctx.textAlign='center';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=1.5;
+  ctx.strokeText('👤 ' + t('enter_name'), W/2, H/2-90);
+  ctx.fillStyle = nameGrad;
   ctx.fillText('👤 ' + t('enter_name'), W/2, H/2-90);
-  ctx.fillStyle=PAL.textFaint; ctx.font='13px Arial';
+
+  ctx.fillStyle='#FFA500'; ctx.font='bold 12px Arial';
   ctx.fillText(t('enter_name_q'), W/2, H/2-50);
 
-  nPanel(W/2-100, H/2-10, 200, 30, 8);
-  ctx.fillStyle=PAL.textDark; ctx.font='16px Arial'; ctx.textAlign='left';
+  nPanel(W/2-100, H/2-10, 200, 30, 12);
+  ctx.fillStyle='#333333'; ctx.font='16px Arial Black'; ctx.textAlign='left';
   ctx.fillText(playerName + (T%40<20 ? '|' : ''), W/2-95, H/2+12);
 
-  nBtn(W/2-50, H/2+60, 100, 30, t('confirm'), false, PAL.green);
+  nBtn(W/2-50, H/2+60, 100, 30, t('confirm'), false, '#00FF00');
 
-  ctx.fillStyle=PAL.textFaint; ctx.font='11px Arial'; ctx.textAlign='center';
+  ctx.fillStyle='#FFA500'; ctx.font='bold 11px Arial';
   ctx.fillText('(' + playerName.length + '/20)', W/2, H/2+35);
 }
 
 // ─── CHARACTER SELECT ─────────────────────────────────────────────────────
 function drawCharSelect(){
   if(!charSelectOpen) return;
-  ctx.fillStyle=PAL.overlay; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(50,50,50,0.7)'; ctx.fillRect(0,0,W,H);
   nPanel(W/2-160, H/2-150, 320, 300);
-  ctx.fillStyle=PAL.textDark; ctx.font='bold 18px Georgia,serif'; ctx.textAlign='center';
+
+  // Title with gradient
+  const charGrad = ctx.createLinearGradient(W/2-80, H/2-140, W/2+80, H/2-120);
+  charGrad.addColorStop(0, '#00D9FF');
+  charGrad.addColorStop(1, '#7B68EE');
+  ctx.fillStyle = charGrad;
+  ctx.font='bold 20px Arial Black'; ctx.textAlign='center';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=1.5;
+  ctx.strokeText(t('select_char'), W/2, H/2-130);
+  ctx.fillStyle = charGrad;
   ctx.fillText(t('select_char'), W/2, H/2-130);
 
   const chars = ['mouse','cat','monkey','pavel'];
+  const charColors = ['#FF6B6B', '#FF69B4', '#FFA500', '#00D9FF'];
   chars.forEach((c,i)=>{
     const x = W/2-120+i*60, sel = selectedChar===c;
-    nBtn(x-20, H/2-80, 50, 60, '', sel);
+    const btnColor = sel ? charColors[i] : '#87CEEB';
+    nBtn(x-20, H/2-80, 50, 60, '', sel, btnColor);
     ctx.fillStyle = '#000'; ctx.font='28px Arial'; ctx.textAlign='center';
     ctx.fillText(CHARS[c].emoji, x+10, H/2-40);
-    ctx.fillStyle = sel ? PAL.textDark : PAL.textFaint; ctx.font='10px Arial';
+    ctx.fillStyle = sel ? '#333333' : '#888888'; ctx.font='bold 10px Arial';
     ctx.fillText(CHARS[c].name, x+10, H/2-10);
   });
 
-  nBtn(W/2-50, H/2+120, 100, 25, t('play'), false, PAL.green);
+  nBtn(W/2-50, H/2+120, 100, 25, t('play'), false, '#00FF00');
 }
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────
 function drawLeaderboard(){
   if(!showLeaderboard) return;
-  ctx.fillStyle=PAL.overlay; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(50,50,50,0.7)'; ctx.fillRect(0,0,W,H);
   nPanel(10, 20, W-20, H-40);
-  ctx.fillStyle=PAL.textDark; ctx.font='bold 16px Georgia,serif'; ctx.textAlign='center';
+
+  // Title with gradient
+  const lbGrad = ctx.createLinearGradient(W/2-80, 30, W/2+80, 50);
+  lbGrad.addColorStop(0, '#00D9FF');
+  lbGrad.addColorStop(1, '#7B68EE');
+  ctx.fillStyle = lbGrad;
+  ctx.font='bold 18px Arial Black'; ctx.textAlign='center';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=1.5;
+  ctx.strokeText(t('leaderboard_title'), W/2, 45);
+  ctx.fillStyle = lbGrad;
   ctx.fillText(t('leaderboard_title'), W/2, 45);
 
   const board = getLeaderboard();
-  ctx.font='11px Arial'; ctx.fillStyle=PAL.textFaint; ctx.textAlign='left';
-  ctx.fillText(t('col_rank'), 20, 65); ctx.fillText(t('col_name'), 60, 65); ctx.fillText(t('col_dist'), 180, 65); ctx.fillText(t('col_score'), 280, 65);
+  ctx.font='bold 11px Arial'; ctx.fillStyle='#FFA500'; ctx.textAlign='left';
+  ctx.fillText(t('col_rank'), 20, 65);
+  ctx.fillText(t('col_name'), 60, 65);
+  ctx.fillText(t('col_dist'), 180, 65);
+  ctx.fillText(t('col_score'), 280, 65);
 
   board.forEach((entry, idx)=>{
     const y = 85 + idx*25;
-    if(idx%2===0) { ctx.fillStyle='rgba(74,124,89,0.08)'; ctx.fillRect(10, y-12, W-20, 25); }
-    ctx.fillStyle = idx<3 ? PAL.green : PAL.textMid;
+    if(idx%2===0) { ctx.fillStyle='rgba(0,217,255,0.08)'; ctx.fillRect(10, y-12, W-20, 25); }
+
+    // Top 3 in gold, others in white
+    if(idx<3) {
+      ctx.fillStyle = '#FFD700';
+      ctx.font='bold 11px Arial';
+    } else {
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font='11px Arial';
+    }
+
     ctx.fillText(`${idx+1}`, 20, y);
     ctx.fillText(entry.name.substring(0,12), 60, y);
     ctx.fillText(`${entry.dist}m`, 180, y);
     ctx.fillText(entry.score, 280, y);
   });
 
-  nBtn(W/2-40, H-55, 80, 25, t('close'));
+  nBtn(W/2-40, H-55, 80, 25, t('close'), false, '#FF6B6B');
 }
 
 // ─── SHOP ────────────────────────────────────────────────────────────────
 function drawShop(){
   if(!showShop) return;
-  ctx.fillStyle=PAL.overlay; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(50,50,50,0.7)'; ctx.fillRect(0,0,W,H);
   nPanel(10, 20, W-20, H-40);
-  ctx.fillStyle=PAL.textDark; ctx.font='bold 14px Georgia,serif'; ctx.textAlign='center';
+
+  // Title with gradient
+  const shopGrad = ctx.createLinearGradient(W/2-50, 30, W/2+50, 50);
+  shopGrad.addColorStop(0, '#00D9FF');
+  shopGrad.addColorStop(1, '#7B68EE');
+  ctx.fillStyle = shopGrad;
+  ctx.font='bold 18px Arial Black'; ctx.textAlign='center';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=1.5;
+  ctx.strokeText(t('shop_title'), W/2, 45);
+  ctx.fillStyle = shopGrad;
   ctx.fillText(t('shop_title'), W/2, 45);
 
   const items = [
@@ -3026,34 +3100,70 @@ function drawShop(){
     nPanel(20, y, W-40, 60, 12);
     ctx.fillStyle='#000'; ctx.font='22px Arial'; ctx.textAlign='left';
     ctx.fillText(item.emoji, 35, y+35);
-    ctx.fillStyle=PAL.textDark; ctx.font='bold 12px Arial';
+    ctx.fillStyle='#333333'; ctx.font='bold 12px Arial Black';
     ctx.fillText(t(item.nameKey), 75, y+28);
-    ctx.fillStyle=PAL.textFaint; ctx.font='11px Arial';
+    ctx.fillStyle='#FFA500'; ctx.font='bold 11px Arial';
     ctx.fillText(`${item.price} ⭐`, 75, y+45);
-    nBtn(W-90, y+15, 70, 30, t('buy'), false, PAL.green);
+    nBtn(W-90, y+15, 70, 30, t('buy'), false, '#00FF00');
   });
 
-  nBtn(W/2-40, H-55, 80, 25, t('close'));
+  nBtn(W/2-40, H-55, 80, 25, t('close'), false, '#FF6B6B');
 }
 
 // ─── GAME OVER ───────────────────────────────────────────────────────────
 function drawGameOver(){
-  ctx.fillStyle=PAL.overlay; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(50,50,50,0.8)'; ctx.fillRect(0,0,W,H);
   ctx.textAlign='center';
-  ctx.shadowColor=PAL.danger; ctx.shadowBlur=20;
-  ctx.fillStyle=PAL.danger; ctx.font='bold 52px Georgia,serif';
+
+  // GAME OVER title with red gradient
+  const gameOverGrad = ctx.createLinearGradient(W/2-120, H/2-80, W/2+120, H/2-50);
+  gameOverGrad.addColorStop(0, '#FF6B6B');
+  gameOverGrad.addColorStop(1, '#FF4444');
+  ctx.fillStyle = gameOverGrad;
+  ctx.font='bold 56px Arial Black';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=2.5;
+  ctx.strokeText('💀 ' + t('game_over') + ' 💀', W/2, H/2-65);
+  ctx.fillStyle = gameOverGrad;
   ctx.fillText('💀 ' + t('game_over') + ' 💀', W/2, H/2-65);
-  ctx.shadowBlur=0;
-  ctx.fillStyle=PAL.textDark; ctx.font='28px Arial';
+
+  // Distance record (white)
+  ctx.fillStyle='#FFFFFF';
+  ctx.font='bold 28px Arial Black';
+  ctx.strokeStyle='#333333';
+  ctx.lineWidth=1.5;
+  ctx.strokeText(`${t('dist_record')} ${bestDist}m`, W/2, H/2-20);
+  ctx.fillStyle='#FFFFFF';
   ctx.fillText(`${t('dist_record')} ${bestDist}m`, W/2, H/2-20);
-  ctx.fillStyle=PAL.green; ctx.font='22px Arial';
-  ctx.fillText(`💀 ${kills}  |  ⭐${score}`, W/2, H/2+20);
+
+  // Kills and score (cyan & yellow)
+  ctx.fillStyle='#00D9FF';
+  ctx.font='bold 22px Arial Black';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=1.5;
+  ctx.strokeText(`💀 ${kills}`, W/2-50, H/2+20);
+  ctx.fillStyle='#00D9FF';
+  ctx.fillText(`💀 ${kills}`, W/2-50, H/2+20);
+
+  ctx.fillStyle='#FFD700';
+  ctx.strokeText(`⭐${score}`, W/2+50, H/2+20);
+  ctx.fillStyle='#FFD700';
+  ctx.fillText(`⭐${score}`, W/2+50, H/2+20);
+
+  // Grade badge
   const g=bestDist>=400?t('grade_s'):bestDist>=250?t('grade_a'):bestDist>=150?t('grade_b'):bestDist>=80?t('grade_c'):t('grade_d');
-  nPanel(W/2-80, H/2+35, 160, 30, 8);
-  ctx.fillStyle=PAL.textDark; ctx.font='bold 16px Georgia,serif';
-  ctx.fillText(`${t('grade_label')} ${g}`, W/2, H/2+58);
-  ctx.fillStyle=PAL.textFaint; ctx.font='14px Arial';
-  ctx.fillText(t('replay_hint_kb'), W/2, H/2+100);
+  nPanel(W/2-80, H/2+35, 160, 40, 16);
+  ctx.fillStyle='#FFD700'; ctx.font='bold 18px Arial Black';
+  ctx.textAlign='center';
+  ctx.strokeStyle='#FFFFFF';
+  ctx.lineWidth=1.5;
+  ctx.strokeText(`${t('grade_label')} ${g}`, W/2, H/2+62);
+  ctx.fillStyle='#FFD700';
+  ctx.fillText(`${t('grade_label')} ${g}`, W/2, H/2+62);
+
+  // Replay hint
+  ctx.fillStyle='#FFA500'; ctx.font='bold 14px Arial';
+  ctx.fillText(t('replay_hint_kb'), W/2, H/2+110);
 }
 
 // ─── INPUT ───────────────────────────────────────────────────────────────
