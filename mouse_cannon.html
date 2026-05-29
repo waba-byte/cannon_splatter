@@ -3334,6 +3334,8 @@ document.addEventListener('click',e=>{
 
     // Play button hitbox matches drawn rect: W/2-50 to W/2+50, H/2+120 to H/2+145
     if(canvasX > W/2-50 && canvasX < W/2+50 && canvasY > H/2+120 && canvasY < H/2+145) {
+      initAudio();
+      mouseScream();
       charSelectOpen = false;
       console.log('Closing char select, starting game');
     }
@@ -3387,6 +3389,17 @@ function restart(){
 
 // ─── AUDIO ───────────────────────────────────────────────────────────────
 let audioCtx = null;
+function mouseScream(){
+  if(!audioCtx||!sfxEnabled) return;
+  const t = audioCtx.currentTime;
+  // High-pitched terrified squeak: sweep down from 900Hz to 200Hz
+  _sweep(900, 200, t, 0.35, 0.25, 'sine');
+  // Add vibrato tremolo effect with noise for panic
+  _noise(t+0.05, 0.25, 0.08);
+  // Another quick squeal at the end
+  _sweep(800, 150, t+0.25, 0.2, 0.2, 'triangle');
+}
+
 function initAudio(){
   if(audioCtx) return;
   try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); playMusic(); }catch(e){}
