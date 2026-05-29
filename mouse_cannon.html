@@ -3389,20 +3389,46 @@ function restart(){
 
 // ─── AUDIO ───────────────────────────────────────────────────────────────
 let audioCtx = null;
+let screamBuffer = null;
+
 function mouseScream(){
   if(!audioCtx||!sfxEnabled) return;
-  const t = audioCtx.currentTime;
-  // High-pitched terrified squeak: sweep down from 900Hz to 200Hz
-  _sweep(900, 200, t, 0.35, 0.25, 'sine');
-  // Add vibrato tremolo effect with noise for panic
-  _noise(t+0.05, 0.25, 0.08);
-  // Another quick squeal at the end
-  _sweep(800, 150, t+0.25, 0.2, 0.2, 'triangle');
+
+  if(!screamBuffer) {
+    // Load scream audio file once
+    fetch('mouse_scream.wav')
+      .then(r=>r.arrayBuffer())
+      .then(ab=>audioCtx.decodeAudioData(ab, buf=>{
+        screamBuffer = buf;
+        playScream();
+      }))
+      .catch(e=>console.log('Scream audio load error:', e));
+  } else {
+    playScream();
+  }
+}
+
+function playScream(){
+  if(!screamBuffer||!audioCtx||!sfxEnabled) return;
+  const src = audioCtx.createBufferSource();
+  src.buffer = screamBuffer;
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+  src.connect(gain);
+  gain.connect(audioCtx.destination);
+  src.start(audioCtx.currentTime);
 }
 
 function initAudio(){
-  if(audioCtx) return;
-  try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); playMusic(); }catch(e){}
+  if(audioCtx) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return;
+  }
+  try{
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    playMusic();
+  }catch(e){}
 }
 function _note(f,t,d,vol,type){
   if(!audioCtx||f<=0||!sfxEnabled) return;
