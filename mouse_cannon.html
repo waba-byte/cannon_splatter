@@ -3,8 +3,28 @@
 <head>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="version" content="2.1.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
+<script>
+// Force refresh on Telegram Mobile if version changed
+(function() {
+  const currentVersion = document.querySelector('meta[name="version"]').content;
+  const storedVersion = localStorage.getItem('gameVersion');
+  if(storedVersion && storedVersion !== currentVersion) {
+    console.log('Version updated:', storedVersion, '→', currentVersion);
+    localStorage.setItem('gameVersion', currentVersion);
+    if(navigator.serviceWorker?.controller) {
+      navigator.serviceWorker.controller.postMessage({type: 'SKIP_WAITING'});
+    }
+  } else {
+    localStorage.setItem('gameVersion', currentVersion);
+  }
+})();
+</script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 /* ── Design Tokens: Casual Colorful Game (Splatter Cannon style) ── */
