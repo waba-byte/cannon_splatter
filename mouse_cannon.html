@@ -4023,16 +4023,30 @@ loop();
   const img = splash.querySelector('img');
   let imgLoaded = false, minTimePassed = false;
 
+  // ▶ Play splash audio IMMEDIATELY when screen loads
+  const splashAudio = new Audio('aaaa splash.mp3');
+  splashAudio.volume = 0.7;
+  splashAudio.play().catch(e => console.log('Splash audio failed:', e));
+
   function hideSplash(){
     if(!imgLoaded || !minTimePassed) return;
     splash.classList.add('fade-out');
-    setTimeout(()=>{ splash.style.display='none'; playSplashAudio(); }, 650);
+    setTimeout(()=>{
+      splash.style.display='none';
+      // Show name screen or char select after splash fades
+      if(!playerName) {
+        playerNameScreenOpen = true;
+      } else {
+        charSelectOpen = true;
+      }
+    }, 650);
   }
 
   img.addEventListener('load',  ()=>{ imgLoaded=true;  hideSplash(); });
   img.addEventListener('error', ()=>{ imgLoaded=true;  hideSplash(); });
 
-  setTimeout(()=>{ minTimePassed=true; hideSplash(); }, 2000);
+  // Wait for audio to finish (or max 3 seconds) before allowing splash to hide
+  setTimeout(()=>{ minTimePassed=true; hideSplash(); }, 3000);
 
   // abilita il tap-per-chiudere solo dopo 600ms — evita che il tocco
   // di apertura della mini app su Telegram propaghi e chiuda subito lo splash
