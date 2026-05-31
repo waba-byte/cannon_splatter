@@ -3325,25 +3325,55 @@ document.addEventListener('click',e=>{
   const scale = rect.width / W;
   const canvasX = x / scale, canvasY = y / scale;
 
-  // Shop button (💰)
-  if(canvasX > W-135 && canvasX < W-98 && canvasY > 8 && canvasY < 33) {
-    showShop = !showShop;
-    e.preventDefault();
-    e.stopPropagation();
-  }
+  // Detect if Telegram for button positioning
+  const isTG = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
 
-  // Leaderboard button (🏆)
-  if(canvasX > W-90 && canvasX < W-53 && canvasY > 8 && canvasY < 33) {
-    showLeaderboard = !showLeaderboard;
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  // Settings button (⚙️)
-  if(canvasX > W-45 && canvasX < W-8 && canvasY > 8 && canvasY < 33) {
-    settingsOpen = !settingsOpen;
-    e.preventDefault();
-    e.stopPropagation();
+  if(isTG) {
+    // Telegram: buttons in top-right corner, vertical layout
+    // Shop button (💰) - y: 10-35
+    if(canvasX > W-47 && canvasX < W-10 && canvasY > 10 && canvasY < 35) {
+      showShop = !showShop;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    // Leaderboard button (🏆) - y: 60-85
+    if(canvasX > W-47 && canvasX < W-10 && canvasY > 60 && canvasY < 85) {
+      showLeaderboard = !showLeaderboard;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    // Settings button (⚙️) - y: 110-135
+    if(canvasX > W-47 && canvasX < W-10 && canvasY > 110 && canvasY < 135) {
+      settingsOpen = !settingsOpen;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+  } else {
+    // Web: buttons on left side, original positions
+    // Shop button (💰) - y: 208-233
+    if(canvasX > 10 && canvasX < 47 && canvasY > 208 && canvasY < 233) {
+      showShop = !showShop;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    // Leaderboard button (🏆) - y: 258-283
+    if(canvasX > 10 && canvasX < 47 && canvasY > 258 && canvasY < 283) {
+      showLeaderboard = !showLeaderboard;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    // Settings button (⚙️) - y: 308-333
+    if(canvasX > 10 && canvasX < 47 && canvasY > 308 && canvasY < 333) {
+      settingsOpen = !settingsOpen;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
   }
 
   // If settings open, handle settings clicks
