@@ -71,6 +71,16 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 <body>
 <div id="splash">
   <img src="mouse_cannon_splash_screen.jpg" alt="Mouse Cannon">
+  <div id="splash-play-btn" style="
+    position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+    background: rgba(255, 100, 100, 0.9); border: 3px solid rgba(255, 150, 150, 1);
+    border-radius: 50px; color: white; font-size: 20px; font-weight: bold;
+    padding: 15px 40px; cursor: pointer; user-select: none;
+    font-family: 'Arial Black', sans-serif; letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transition: all 0.2s;
+    z-index: 10000;
+  ">▶ TAP TO PLAY</div>
 </div>
 <canvas id="canvas" width="390" height="700"></canvas>
 
@@ -4001,12 +4011,27 @@ loop();
 (function(){
   const splash = document.getElementById('splash');
   const img = splash.querySelector('img');
+  const playBtn = document.getElementById('splash-play-btn');
   let imgLoaded = false, minTimePassed = false;
 
-  // ▶ Play splash audio IMMEDIATELY when screen loads
+  // ▶ Play splash audio on button click (user interaction required by browser)
   const splashAudio = new Audio('aaaa_splash.mp3');
   splashAudio.volume = 0.7;
-  splashAudio.play().catch(e => console.log('Splash audio failed:', e));
+
+  function playAudio() {
+    console.log('🔊 Playing splash audio');
+    splashAudio.play()
+      .then(() => console.log('✓ Splash audio playing'))
+      .catch(e => console.error('✗ Splash audio failed:', e));
+  }
+
+  // Play audio when user clicks play button
+  playBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    playAudio();
+    playBtn.style.opacity = '0.5';
+    playBtn.style.pointerEvents = 'none';
+  });
 
   function hideSplash(){
     if(!imgLoaded || !minTimePassed) return;
