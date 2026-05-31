@@ -10,6 +10,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
 <script>
+// Register Service Worker for better cache management
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/cannon_splatter/sw.js', { scope: '/cannon_splatter/' })
+    .then(reg => console.log('✓ Service Worker registered'))
+    .catch(err => console.log('Service Worker registration failed:', err));
+}
+
 // Force refresh on Telegram Mobile if version changed
 (function() {
   const currentVersion = document.querySelector('meta[name="version"]').content;
