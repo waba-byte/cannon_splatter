@@ -323,7 +323,6 @@ let selectedChar = localStorage.getItem('selectedChar') || 'mouse';
 // Try to get name from Telegram user first, then localStorage, then ask
 let playerName = (window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name) || localStorage.getItem('playerName') || '';
 const isTelegramApp = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
-let splashAudioPlayed = false;
 let playerNameScreenOpen = !playerName && !isTelegramApp;  // only show name screen on web if no name
 let charSelectOpen = !!playerName;  // show char select only after name is confirmed
 let namePromptShown = false;  // track if we've already shown the prompt
@@ -332,25 +331,6 @@ let showLeaderboard = false;
 let showShop = false;
 let hasShield = JSON.parse(localStorage.getItem('hasShield') ?? 'false');
 let extraLives = parseInt(localStorage.getItem('extraLives') ?? '0');
-
-// ─── SPLASH AUDIO ───────────────────────────────────────────────────────────
-function playSplashAudio() {
-  if(splashAudioPlayed) return;
-  splashAudioPlayed = true;
-
-  const audio = new Audio('aaaa splash.mp3');
-  audio.volume = 0.7;
-  audio.play().catch(e => console.log('Splash audio play failed:', e));
-
-  // Show name screen or char select after audio finishes (or after 3 seconds max)
-  setTimeout(() => {
-    if(!playerName) {
-      playerNameScreenOpen = true;
-    } else {
-      charSelectOpen = true;
-    }
-  }, 3000);
-}
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────
 function getLeaderboard() {
@@ -4024,7 +4004,7 @@ loop();
   let imgLoaded = false, minTimePassed = false;
 
   // ▶ Play splash audio IMMEDIATELY when screen loads
-  const splashAudio = new Audio('aaaa splash.mp3');
+  const splashAudio = new Audio('aaaa_splash.mp3');
   splashAudio.volume = 0.7;
   splashAudio.play().catch(e => console.log('Splash audio failed:', e));
 
