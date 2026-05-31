@@ -2949,18 +2949,24 @@ function drawHUD() {
     ctx.fillText(t('angle'), cx, cy+28);
   }
 
-  // HUD buttons (shop, leaderboard, settings) - vertical on left side
-  nBtn(10, 208, 37, 25, '', showShop);
-  ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('💰', 28.5, 226);
+  // HUD buttons (shop, leaderboard, settings) - position varies by platform
+  const isTG = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const btnX = isTG ? W - 47 : 10;  // Right side on Telegram, left side on Web
+  const btnY1 = isTG ? 10 : 208;
+  const btnY2 = isTG ? 60 : 258;
+  const btnY3 = isTG ? 110 : 308;
 
-  nBtn(10, 258, 37, 25, '', showLeaderboard);
+  nBtn(btnX, btnY1, 37, 25, '', showShop);
   ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('🏆', 28.5, 276);
+  ctx.fillText('💰', btnX+18.5, btnY1+18);
 
-  nBtn(10, 308, 37, 25, '', settingsOpen);
+  nBtn(btnX, btnY2, 37, 25, '', showLeaderboard);
   ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('⚙️', 28.5, 326);
+  ctx.fillText('🏆', btnX+18.5, btnY2+18);
+
+  nBtn(btnX, btnY3, 37, 25, '', settingsOpen);
+  ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
+  ctx.fillText('⚙️', btnX+18.5, btnY3+18);
 }
 
 function drawTexts(){
