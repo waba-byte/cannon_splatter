@@ -73,6 +73,7 @@ body { background:#000; display:flex; align-items:center; justify-content:center
   <img src="mouse_cannon_splash_screen.jpg" alt="Mouse Cannon">
 </div>
 <div id="splash-play-btn" style="
+  display: none;
   position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
   background: rgba(255, 100, 100, 0.9); border: 3px solid rgba(255, 150, 150, 1);
   border-radius: 50px; color: white; font-size: 20px; font-weight: bold;
@@ -4014,7 +4015,6 @@ loop();
   const playBtn = document.getElementById('splash-play-btn');
   let imgLoaded = false, minTimePassed = false;
 
-  // ▶ Play splash audio on button click (user interaction required by browser)
   const splashAudio = new Audio('aaaa_splash.mp3');
   splashAudio.volume = 0.7;
 
@@ -4025,13 +4025,25 @@ loop();
       .catch(e => console.error('✗ Splash audio failed:', e));
   }
 
-  // Play audio when user clicks play button
-  playBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    playAudio();
-    playBtn.style.opacity = '0.5';
-    playBtn.style.pointerEvents = 'none';
-  });
+  // Detect Telegram Mini App
+  const isTelegram = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
+
+  if(isTelegram) {
+    // Telegram: auto-play after 1 second, no button needed
+    console.log('📱 Telegram detected - auto-playing audio after 1 second');
+    setTimeout(() => {
+      playAudio();
+    }, 1000);
+  } else {
+    // Web: show play button, wait for user click
+    playBtn.style.display = 'block';
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      playAudio();
+      playBtn.style.opacity = '0.5';
+      playBtn.style.pointerEvents = 'none';
+    });
+  }
 
   function hideSplash(){
     if(!imgLoaded || !minTimePassed) return;
