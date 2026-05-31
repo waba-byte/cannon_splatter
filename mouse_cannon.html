@@ -71,17 +71,17 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 <body>
 <div id="splash">
   <img src="mouse_cannon_splash_screen.jpg" alt="Mouse Cannon">
-  <div id="splash-play-btn" style="
-    position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-    background: rgba(255, 100, 100, 0.9); border: 3px solid rgba(255, 150, 150, 1);
-    border-radius: 50px; color: white; font-size: 20px; font-weight: bold;
-    padding: 15px 40px; cursor: pointer; user-select: none;
-    font-family: 'Arial Black', sans-serif; letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    transition: all 0.2s;
-    z-index: 10000;
-  ">▶ TAP TO PLAY</div>
 </div>
+<div id="splash-play-btn" style="
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: rgba(255, 100, 100, 0.9); border: 3px solid rgba(255, 150, 150, 1);
+  border-radius: 50px; color: white; font-size: 20px; font-weight: bold;
+  padding: 15px 40px; cursor: pointer; user-select: none;
+  font-family: 'Arial Black', sans-serif; letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  transition: all 0.2s;
+  z-index: 10000;
+">▶ TAP TO PLAY</div>
 <canvas id="canvas" width="390" height="700"></canvas>
 
 <!-- touch controls (visibili solo su touch device) -->
