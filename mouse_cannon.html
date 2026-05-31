@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2.1.1">
+<meta name="version" content="2.1.2">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
 <script>
@@ -2980,22 +2980,23 @@ function drawHUD() {
 
   // HUD buttons (shop, leaderboard, settings) - position varies by platform
   const isTG = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
-  const btnX = isTG ? W - 47 : 10;  // Right side on Telegram, left side on Web
-  const btnY1 = isTG ? 10 : 208;
-  const btnY2 = isTG ? 60 : 258;
-  const btnY3 = isTG ? 110 : 308;
+  const btnW = 50, btnH = 35;  // Larger buttons for mobile
+  const btnX = isTG ? W - btnW - 8 : 10;  // Right side on Telegram, left side on Web
+  const btnY1 = isTG ? 12 : 208;
+  const btnY2 = isTG ? 65 : 258;
+  const btnY3 = isTG ? 118 : 308;
 
-  nBtn(btnX, btnY1, 37, 25, '', showShop);
-  ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('💰', btnX+18.5, btnY1+18);
+  nBtn(btnX, btnY1, btnW, btnH, '', showShop);
+  ctx.fillStyle='#FFFFFF'; ctx.font='20px Arial'; ctx.textAlign='center';
+  ctx.fillText('💰', btnX+btnW/2, btnY1+btnH/2+6);
 
-  nBtn(btnX, btnY2, 37, 25, '', showLeaderboard);
-  ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('🏆', btnX+18.5, btnY2+18);
+  nBtn(btnX, btnY2, btnW, btnH, '', showLeaderboard);
+  ctx.fillStyle='#FFFFFF'; ctx.font='20px Arial'; ctx.textAlign='center';
+  ctx.fillText('🏆', btnX+btnW/2, btnY2+btnH/2+6);
 
-  nBtn(btnX, btnY3, 37, 25, '', settingsOpen);
-  ctx.fillStyle='#FFFFFF'; ctx.font='18px Arial'; ctx.textAlign='center';
-  ctx.fillText('⚙️', btnX+18.5, btnY3+18);
+  nBtn(btnX, btnY3, btnW, btnH, '', settingsOpen);
+  ctx.fillStyle='#FFFFFF'; ctx.font='20px Arial'; ctx.textAlign='center';
+  ctx.fillText('⚙️', btnX+btnW/2, btnY3+btnH/2+6);
 }
 
 function drawTexts(){
@@ -3336,23 +3337,23 @@ document.addEventListener('click',e=>{
   const isTG = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
 
   if(isTG) {
-    // Telegram: buttons in top-right corner, vertical layout
-    // Shop button (💰) - y: 10-35
-    if(canvasX > W-47 && canvasX < W-10 && canvasY > 10 && canvasY < 35) {
+    // Telegram: buttons in top-right corner, vertical layout (50x35 size)
+    // Shop button (💰) - y: 12-47
+    if(canvasX > W-58 && canvasX < W-8 && canvasY > 12 && canvasY < 47) {
       showShop = !showShop;
       e.preventDefault();
       e.stopPropagation();
       return;
     }
-    // Leaderboard button (🏆) - y: 60-85
-    if(canvasX > W-47 && canvasX < W-10 && canvasY > 60 && canvasY < 85) {
+    // Leaderboard button (🏆) - y: 65-100
+    if(canvasX > W-58 && canvasX < W-8 && canvasY > 65 && canvasY < 100) {
       showLeaderboard = !showLeaderboard;
       e.preventDefault();
       e.stopPropagation();
       return;
     }
-    // Settings button (⚙️) - y: 110-135
-    if(canvasX > W-47 && canvasX < W-10 && canvasY > 110 && canvasY < 135) {
+    // Settings button (⚙️) - y: 118-153
+    if(canvasX > W-58 && canvasX < W-8 && canvasY > 118 && canvasY < 153) {
       settingsOpen = !settingsOpen;
       e.preventDefault();
       e.stopPropagation();
@@ -4106,14 +4107,15 @@ loop();
   }
 
   if(isTelegram) {
-    // Telegram: try auto-play after 1 second, with fallback on tap
-    console.log('📱 Telegram detected - attempting auto-play after 1 second');
+    // Telegram: try auto-play after 2 seconds, with fallback on tap
+    console.log('📱 Telegram detected - attempting auto-play after 2 seconds');
     setTimeout(() => {
       tryPlayAudio();
-    }, 1000);
+    }, 2000);
 
-    // Fallback: play on first tap if auto-play fails
+    // Fallback: play on first tap/click if auto-play fails
     splash.addEventListener('pointerdown', tryPlayAudio, { once: true });
+    splash.addEventListener('click', tryPlayAudio, { once: true });
   } else {
     // Web: show play button, wait for user click
     playBtn.style.display = 'block';
