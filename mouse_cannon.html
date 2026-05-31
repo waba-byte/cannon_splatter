@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2.1.2">
+<meta name="version" content="2.1.3">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
 <script>
@@ -3336,10 +3336,17 @@ document.addEventListener('click',e=>{
   // Detect if Telegram for button positioning
   const isTG = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
 
+  // DEBUG: Log click position
+  if(canvasY < 200) {
+    console.log(`📍 Click at canvasX: ${canvasX.toFixed(0)}, canvasY: ${canvasY.toFixed(0)}, isTG: ${isTG}`);
+  }
+
   if(isTG) {
     // Telegram: buttons in top-right corner, vertical layout (50x35 size)
-    // Shop button (💰) - y: 12-47
+    // Shop button (💰) - y: 12-47, x: W-58 to W-8
+    console.log(`Telegram mode: checking buttons. W=${W}, ranges: x[${W-58}-${W-8}]`);
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 12 && canvasY < 47) {
+      console.log('✓ SHOP button clicked');
       showShop = !showShop;
       e.preventDefault();
       e.stopPropagation();
@@ -3347,6 +3354,7 @@ document.addEventListener('click',e=>{
     }
     // Leaderboard button (🏆) - y: 65-100
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 65 && canvasY < 100) {
+      console.log('✓ LEADERBOARD button clicked');
       showLeaderboard = !showLeaderboard;
       e.preventDefault();
       e.stopPropagation();
@@ -3354,6 +3362,7 @@ document.addEventListener('click',e=>{
     }
     // Settings button (⚙️) - y: 118-153
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 118 && canvasY < 153) {
+      console.log('✓ SETTINGS button clicked');
       settingsOpen = !settingsOpen;
       e.preventDefault();
       e.stopPropagation();
@@ -4086,36 +4095,62 @@ loop();
   const version = document.querySelector('meta[name="version"]')?.content || '?.?.?';
   versionDiv.textContent = `v${version}`;
 
+  // DEBUG INFO
+  console.log('=== SPLASH SCREEN DEBUG ===');
+  console.log('Canvas W:', W, 'H:', H);
+  console.log('Telegram SDK:', !!window.Telegram?.WebApp);
+
   const splashAudio = new Audio('aaaa_splash.mp3');
   splashAudio.volume = 0.7;
+  console.log('🎵 Audio created:', splashAudio.src);
+
+  // Check if audio file exists
+  fetch('/cannon_splatter/aaaa_splash.mp3')
+    .then(r => console.log('✓ Audio file found:', r.status))
+    .catch(e => console.error('✗ Audio file not found:', e));
 
   function playAudio() {
-    console.log('🔊 Playing splash audio');
+    console.log('🔊 Attempting play() at:', new Date().getTime());
     splashAudio.play()
-      .then(() => console.log('✓ Splash audio playing'))
-      .catch(e => console.error('✗ Splash audio failed:', e));
+      .then(() => console.log('✓ Audio playing at:', new Date().getTime()))
+      .catch(e => {
+        console.error('✗ Audio play failed:', e.name, e.message);
+        // Try with a fallback approach
+        splashAudio.autoplay = true;
+        splashAudio.muted = false;
+      });
   }
 
   // Detect Telegram Mini App
   const isTelegram = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
+  console.log('📱 isTelegram:', isTelegram);
+  console.log('🔤 Telegram User:', window.Telegram?.WebApp?.initDataUnsafe?.user);
+
   let audioPlayed = false;
 
   function tryPlayAudio() {
     if(audioPlayed) return;
     audioPlayed = true;
+    console.log('▶ tryPlayAudio called');
     playAudio();
   }
 
   if(isTelegram) {
     // Telegram: try auto-play after 2 seconds, with fallback on tap
-    console.log('📱 Telegram detected - attempting auto-play after 2 seconds');
+    console.log('⏱ Will attempt auto-play in 2 seconds');
     setTimeout(() => {
+      console.log('⏱ 2 seconds passed, calling tryPlayAudio()');
       tryPlayAudio();
     }, 2000);
 
     // Fallback: play on first tap/click if auto-play fails
-    splash.addEventListener('pointerdown', tryPlayAudio, { once: true });
-    splash.addEventListener('click', tryPlayAudio, { once: true });
+    const tapHandler = () => {
+      console.log('👆 Tap detected on splash');
+      tryPlayAudio();
+    };
+    splash.addEventListener('pointerdown', tapHandler, { once: true });
+    splash.addEventListener('click', tapHandler, { once: true });
+    console.log('✓ Tap listeners registered');
   } else {
     // Web: show play button, wait for user click
     playBtn.style.display = 'block';
