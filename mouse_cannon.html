@@ -4027,19 +4027,29 @@ loop();
 
   // Detect Telegram Mini App
   const isTelegram = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
+  let audioPlayed = false;
+
+  function tryPlayAudio() {
+    if(audioPlayed) return;
+    audioPlayed = true;
+    playAudio();
+  }
 
   if(isTelegram) {
-    // Telegram: auto-play after 1 second, no button needed
-    console.log('📱 Telegram detected - auto-playing audio after 1 second');
+    // Telegram: try auto-play after 1 second, with fallback on tap
+    console.log('📱 Telegram detected - attempting auto-play after 1 second');
     setTimeout(() => {
-      playAudio();
+      tryPlayAudio();
     }, 1000);
+
+    // Fallback: play on first tap if auto-play fails
+    splash.addEventListener('pointerdown', tryPlayAudio, { once: true });
   } else {
     // Web: show play button, wait for user click
     playBtn.style.display = 'block';
     playBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      playAudio();
+      tryPlayAudio();
       playBtn.style.opacity = '0.5';
       playBtn.style.pointerEvents = 'none';
     });
