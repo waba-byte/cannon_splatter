@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2.1.6">
+<meta name="version" content="2.1.7">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
 <script>
@@ -28,17 +28,23 @@ function addDebugLog(msg) {
 }
 window.addDebugLog = addDebugLog;
 
-// Close debug on button click
-const closeBtn = document.getElementById('debug-close');
-closeBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
+// Close debug - ANY click/tap closes it
+debugOverlay.addEventListener('click', () => {
+  debugOverlay.style.display = 'none';
+});
+debugOverlay.addEventListener('touchend', () => {
   debugOverlay.style.display = 'none';
 });
 
-// Auto-close after 15 seconds
+// Also close on key press
+document.addEventListener('keydown', () => {
+  debugOverlay.style.display = 'none';
+}, { once: true });
+
+// Auto-close after 5 seconds
 setTimeout(() => {
   debugOverlay.style.display = 'none';
-}, 15000);
+}, 5000);
 
 addDebugLog('🚀 App started');
 
@@ -156,7 +162,7 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 
   <div style="font-size: 24px; font-weight: bold; margin-bottom: 30px;">🐛 DEBUG LOG</div>
   <div id="debug-content" style="white-space: pre-wrap; max-width: 100%; word-break: break-all;">Caricamento...</div>
-  <div style="margin-top: 50px; font-size: 12px; color: #888;">👆 Clicca X rosso per chiudere</div>
+  <div style="margin-top: 50px; font-size: 12px; color: #888;">👆 Clicca per chiudere | Si chiude in 5 secondi</div>
 </div>
 
 <!-- touch controls (visibili solo su touch device) -->
