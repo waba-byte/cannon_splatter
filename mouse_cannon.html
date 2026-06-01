@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2.1.3">
+<meta name="version" content="2.1.4">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
 <script>
@@ -16,6 +16,17 @@ if('serviceWorker' in navigator) {
     .then(reg => console.log('✓ Service Worker registered'))
     .catch(err => console.log('Service Worker registration failed:', err));
 }
+
+// Debug overlay logger
+const debugOverlay = document.getElementById('debug-overlay');
+const debugLogs = [];
+function addDebugLog(msg) {
+  const timestamp = new Date().toLocaleTimeString();
+  debugLogs.push(`[${timestamp}] ${msg}`);
+  if(debugLogs.length > 20) debugLogs.shift();
+  debugOverlay.innerHTML = 'DEBUG LOG<br>' + debugLogs.map(l => l.replace(/</g, '&lt;')).join('<br>');
+}
+window.addDebugLog = addDebugLog;
 
 // Force refresh on Telegram Mobile if version changed
 (function() {
@@ -113,6 +124,14 @@ body { background:#000; display:flex; align-items:center; justify-content:center
   z-index: 10000;
 ">▶ TAP TO PLAY</div>
 <canvas id="canvas" width="390" height="700"></canvas>
+
+<!-- Debug overlay -->
+<div id="debug-overlay" style="
+  position: fixed; top: 50px; right: 0; width: 200px; height: 300px;
+  background: rgba(0,0,0,0.85); color: #0F0; font-family: monospace; font-size: 10px;
+  padding: 8px; overflow-y: auto; z-index: 9998; border-left: 2px solid #0F0;
+  max-width: 100%; box-sizing: border-box;
+">DEBUG LOG</div>
 
 <!-- touch controls (visibili solo su touch device) -->
 <div id="tctrl" style="display:none">
@@ -3338,31 +3357,26 @@ document.addEventListener('click',e=>{
 
   // DEBUG: Log click position
   if(canvasY < 200) {
-    console.log(`📍 Click at canvasX: ${canvasX.toFixed(0)}, canvasY: ${canvasY.toFixed(0)}, isTG: ${isTG}`);
+    addDebugLog(`Click: ${canvasX.toFixed(0)},${canvasY.toFixed(0)}`);
   }
 
   if(isTG) {
-    // Telegram: buttons in top-right corner, vertical layout (50x35 size)
-    // Shop button (💰) - y: 12-47, x: W-58 to W-8
-    console.log(`Telegram mode: checking buttons. W=${W}, ranges: x[${W-58}-${W-8}]`);
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 12 && canvasY < 47) {
-      console.log('✓ SHOP button clicked');
+      addDebugLog('💰 SHOP');
       showShop = !showShop;
       e.preventDefault();
       e.stopPropagation();
       return;
     }
-    // Leaderboard button (🏆) - y: 65-100
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 65 && canvasY < 100) {
-      console.log('✓ LEADERBOARD button clicked');
+      addDebugLog('🏆 BOARD');
       showLeaderboard = !showLeaderboard;
       e.preventDefault();
       e.stopPropagation();
       return;
     }
-    // Settings button (⚙️) - y: 118-153
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 118 && canvasY < 153) {
-      console.log('✓ SETTINGS button clicked');
+      addDebugLog('⚙️ SETTINGS');
       settingsOpen = !settingsOpen;
       e.preventDefault();
       e.stopPropagation();
@@ -4096,25 +4110,25 @@ loop();
   versionDiv.textContent = `v${version}`;
 
   // DEBUG INFO
-  console.log('=== SPLASH SCREEN DEBUG ===');
-  console.log('Canvas W:', W, 'H:', H);
-  console.log('Telegram SDK:', !!window.Telegram?.WebApp);
+  addDebugLog('=== SPLASH SCREEN ===');
+  addDebugLog(`Canvas: ${W}x${H}`);
+  addDebugLog(`TG SDK: ${!!window.Telegram?.WebApp}`);
 
   const splashAudio = new Audio('aaaa_splash.mp3');
   splashAudio.volume = 0.7;
-  console.log('🎵 Audio created:', splashAudio.src);
+  addDebugLog('🎵 Audio created');
 
   // Check if audio file exists
   fetch('/cannon_splatter/aaaa_splash.mp3')
-    .then(r => console.log('✓ Audio file found:', r.status))
-    .catch(e => console.error('✗ Audio file not found:', e));
+    .then(r => addDebugLog(`✓ Audio file: ${r.status}`))
+    .catch(e => addDebugLog(`✗ Audio file: ${e.message}`));
 
   function playAudio() {
-    console.log('🔊 Attempting play() at:', new Date().getTime());
+    addDebugLog('▶ play() called');
     splashAudio.play()
-      .then(() => console.log('✓ Audio playing at:', new Date().getTime()))
+      .then(() => addDebugLog('✓ Audio playing'))
       .catch(e => {
-        console.error('✗ Audio play failed:', e.name, e.message);
+        addDebugLog(`✗ Audio: ${e.name}`);
         // Try with a fallback approach
         splashAudio.autoplay = true;
         splashAudio.muted = false;
@@ -4123,34 +4137,31 @@ loop();
 
   // Detect Telegram Mini App
   const isTelegram = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
-  console.log('📱 isTelegram:', isTelegram);
-  console.log('🔤 Telegram User:', window.Telegram?.WebApp?.initDataUnsafe?.user);
+  addDebugLog(`📱 isTelegram: ${isTelegram}`);
 
   let audioPlayed = false;
 
   function tryPlayAudio() {
     if(audioPlayed) return;
     audioPlayed = true;
-    console.log('▶ tryPlayAudio called');
+    addDebugLog('▶ Audio trigger');
     playAudio();
   }
 
   if(isTelegram) {
-    // Telegram: try auto-play after 2 seconds, with fallback on tap
-    console.log('⏱ Will attempt auto-play in 2 seconds');
+    addDebugLog('⏱ Will play in 2s');
     setTimeout(() => {
-      console.log('⏱ 2 seconds passed, calling tryPlayAudio()');
+      addDebugLog('⏱ 2s done');
       tryPlayAudio();
     }, 2000);
 
-    // Fallback: play on first tap/click if auto-play fails
     const tapHandler = () => {
-      console.log('👆 Tap detected on splash');
+      addDebugLog('👆 Tap!');
       tryPlayAudio();
     };
     splash.addEventListener('pointerdown', tapHandler, { once: true });
     splash.addEventListener('click', tapHandler, { once: true });
-    console.log('✓ Tap listeners registered');
+    addDebugLog('✓ Listeners set');
   } else {
     // Web: show play button, wait for user click
     playBtn.style.display = 'block';
