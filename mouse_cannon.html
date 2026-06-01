@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2.1.8">
+<meta name="version" content="2.1.9">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
 <script>
@@ -25,28 +25,20 @@ function addDebugLog(msg) {
   debugLogs.push(msg);
   if(debugLogs.length > 15) debugLogs.shift();
   debugContent.textContent = debugLogs.join('\n');
+  console.log('DEBUG:', msg);
 }
 window.addDebugLog = addDebugLog;
 
-// Close debug - ANY click/tap closes it
-debugOverlay.addEventListener('click', () => {
-  debugOverlay.style.display = 'none';
-});
-debugOverlay.addEventListener('touchend', () => {
-  debugOverlay.style.display = 'none';
-});
+// TEST: Add test message immediately
+debugContent.textContent = '🚀 DEBUG ACTIVE\n⏳ Caricando...';
+setTimeout(() => {
+  debugContent.textContent = '✓ Debug init OK';
+}, 500);
 
-// Also close on key press
-document.addEventListener('keydown', () => {
-  debugOverlay.style.display = 'none';
-}, { once: true });
-
-// Auto-close after 3 seconds
+// Auto-close after 5 seconds
 setTimeout(() => {
   debugOverlay.style.display = 'none';
-}, 3000);
-
-addDebugLog('🚀 App started');
+}, 5000);
 
 // Force refresh on Telegram Mobile if version changed
 (function() {
