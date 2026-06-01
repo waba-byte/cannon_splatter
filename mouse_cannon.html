@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2.1.4">
+<meta name="version" content="2.1.5">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
 <script>
@@ -18,15 +18,22 @@ if('serviceWorker' in navigator) {
 }
 
 // Debug overlay logger
+const debugContent = document.getElementById('debug-content');
 const debugOverlay = document.getElementById('debug-overlay');
 const debugLogs = [];
 function addDebugLog(msg) {
-  const timestamp = new Date().toLocaleTimeString();
-  debugLogs.push(`[${timestamp}] ${msg}`);
-  if(debugLogs.length > 20) debugLogs.shift();
-  debugOverlay.innerHTML = 'DEBUG LOG<br>' + debugLogs.map(l => l.replace(/</g, '&lt;')).join('<br>');
+  debugLogs.push(msg);
+  if(debugLogs.length > 15) debugLogs.shift();
+  debugContent.textContent = debugLogs.join('\n');
 }
 window.addDebugLog = addDebugLog;
+
+// Close debug on click
+debugOverlay.addEventListener('click', () => {
+  debugOverlay.style.display = 'none';
+});
+
+addDebugLog('🚀 App started');
 
 // Force refresh on Telegram Mobile if version changed
 (function() {
@@ -125,13 +132,18 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 ">▶ TAP TO PLAY</div>
 <canvas id="canvas" width="390" height="700"></canvas>
 
-<!-- Debug overlay -->
+<!-- Debug overlay - LARGE AND VISIBLE -->
 <div id="debug-overlay" style="
-  position: fixed; top: 50px; right: 0; width: 200px; height: 300px;
-  background: rgba(0,0,0,0.85); color: #0F0; font-family: monospace; font-size: 10px;
-  padding: 8px; overflow-y: auto; z-index: 9998; border-left: 2px solid #0F0;
-  max-width: 100%; box-sizing: border-box;
-">DEBUG LOG</div>
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.95); color: #FFFF00; font-family: monospace; font-size: 16px;
+  padding: 40px 20px; overflow-y: auto; z-index: 99999;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  text-align: center; line-height: 2;
+">
+  <div style="font-size: 24px; font-weight: bold; margin-bottom: 30px;">🐛 DEBUG LOG</div>
+  <div id="debug-content" style="white-space: pre-wrap; max-width: 100%; word-break: break-all;">Caricamento...</div>
+  <div style="margin-top: 50px; font-size: 12px; color: #888;">Clicca per chiudere</div>
+</div>
 
 <!-- touch controls (visibili solo su touch device) -->
 <div id="tctrl" style="display:none">
