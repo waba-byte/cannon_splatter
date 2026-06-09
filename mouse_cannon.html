@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="version" content="2.2.0">
+<meta name="version" content="2.2.1">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mouse Cannon 💀</title>
 <script>
@@ -16,29 +16,6 @@ if('serviceWorker' in navigator) {
     .then(reg => console.log('✓ Service Worker registered'))
     .catch(err => console.log('Service Worker registration failed:', err));
 }
-
-// Debug overlay logger
-const debugContent = document.getElementById('debug-content');
-const debugOverlay = document.getElementById('debug-overlay');
-const debugLogs = [];
-function addDebugLog(msg) {
-  debugLogs.push(msg);
-  if(debugLogs.length > 15) debugLogs.shift();
-  debugContent.textContent = debugLogs.join('\n');
-  console.log('DEBUG:', msg);
-}
-window.addDebugLog = addDebugLog;
-
-// TEST: Add test message immediately
-debugContent.textContent = '🚀 DEBUG ACTIVE\n⏳ Caricando...';
-setTimeout(() => {
-  debugContent.textContent = '✓ Debug init OK';
-}, 500);
-
-// Auto-close after 5 seconds
-setTimeout(() => {
-  debugOverlay.style.display = 'none';
-}, 5000);
 
 // Force refresh on Telegram Mobile if version changed
 (function() {
@@ -137,10 +114,6 @@ body { background:#000; display:flex; align-items:center; justify-content:center
 ">▶ TAP TO PLAY</div>
 <canvas id="canvas" width="390" height="700"></canvas>
 
-<!-- Debug overlay - HIDDEN, only for browser console -->
-<div id="debug-overlay" style="display: none;">
-  <div id="debug-content"></div>
-</div>
 
 <!-- touch controls (visibili solo su touch device) -->
 <div id="tctrl" style="display:none">
@@ -3366,26 +3339,22 @@ document.addEventListener('click',e=>{
 
   // DEBUG: Log click position
   if(canvasY < 200) {
-    addDebugLog(`Click: ${canvasX.toFixed(0)},${canvasY.toFixed(0)}`);
   }
 
   if(isTG) {
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 12 && canvasY < 47) {
-      addDebugLog('💰 SHOP');
       showShop = !showShop;
       e.preventDefault();
       e.stopPropagation();
       return;
     }
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 65 && canvasY < 100) {
-      addDebugLog('🏆 BOARD');
       showLeaderboard = !showLeaderboard;
       e.preventDefault();
       e.stopPropagation();
       return;
     }
     if(canvasX > W-58 && canvasX < W-8 && canvasY > 118 && canvasY < 153) {
-      addDebugLog('⚙️ SETTINGS');
       settingsOpen = !settingsOpen;
       e.preventDefault();
       e.stopPropagation();
@@ -4119,25 +4088,16 @@ loop();
   versionDiv.textContent = `v${version}`;
 
   // DEBUG INFO
-  addDebugLog('=== SPLASH SCREEN ===');
-  addDebugLog(`Canvas: ${W}x${H}`);
-  addDebugLog(`TG SDK: ${!!window.Telegram?.WebApp}`);
 
   const splashAudio = new Audio('aaaa_splash.mp3');
   splashAudio.volume = 0.7;
-  addDebugLog('🎵 Audio created');
 
   // Check if audio file exists
   fetch('/cannon_splatter/aaaa_splash.mp3')
-    .then(r => addDebugLog(`✓ Audio file: ${r.status}`))
-    .catch(e => addDebugLog(`✗ Audio file: ${e.message}`));
 
   function playAudio() {
-    addDebugLog('▶ play() called');
     splashAudio.play()
-      .then(() => addDebugLog('✓ Audio playing'))
       .catch(e => {
-        addDebugLog(`✗ Audio: ${e.name}`);
         // Try with a fallback approach
         splashAudio.autoplay = true;
         splashAudio.muted = false;
@@ -4146,31 +4106,25 @@ loop();
 
   // Detect Telegram Mini App
   const isTelegram = !!window.Telegram?.WebApp?.initDataUnsafe?.user;
-  addDebugLog(`📱 isTelegram: ${isTelegram}`);
 
   let audioPlayed = false;
 
   function tryPlayAudio() {
     if(audioPlayed) return;
     audioPlayed = true;
-    addDebugLog('▶ Audio trigger');
     playAudio();
   }
 
   if(isTelegram) {
-    addDebugLog('⏱ Will play in 2s');
     setTimeout(() => {
-      addDebugLog('⏱ 2s done');
       tryPlayAudio();
     }, 2000);
 
     const tapHandler = () => {
-      addDebugLog('👆 Tap!');
       tryPlayAudio();
     };
     splash.addEventListener('pointerdown', tapHandler, { once: true });
     splash.addEventListener('click', tapHandler, { once: true });
-    addDebugLog('✓ Listeners set');
   } else {
     // Web: show play button, wait for user click
     playBtn.style.display = 'block';
